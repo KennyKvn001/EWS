@@ -12,7 +12,7 @@ export default function Header() {
       </div>
 
       {/* Right side controls */}
-      <div className="flex items-center gap-4 right-14 relative">
+      <div className="flex items-center gap-4 right-8 relative">
         {/* Language Switch */}
         <div className="flex items-center gap-2">
           <Switch />
