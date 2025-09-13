@@ -4,7 +4,7 @@ import DropdownMenuWithIcon from "@/components/customized/dropdown-menu/dropdown
 
 export default function Header() {
   return (
-    <header className="flex justify-between bg-amber-50 py-4 px-4 border-b">
+    <header className="flex justify-between bg-transparent py-4 px-4 border-b">
       {/* Left side - Sidebar trigger and Logo */}
       <div className="flex items-center gap-4">
         <SidebarTrigger className="-ml-1" />
@@ -12,7 +12,7 @@ export default function Header() {
       </div>
 
       {/* Right side controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 right-14 relative">
         {/* Language Switch */}
         <div className="flex items-center gap-2">
           <Switch />

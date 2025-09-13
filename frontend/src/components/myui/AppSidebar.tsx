@@ -36,17 +36,17 @@ const items = [
   },
   {
     title: "Predictions",
-    url: "/analytics",
+    url: "/predictions",
     icon: BarChart3,
   },
   {
     title: "Simulation",
-    url: "/reports",
+    url: "/simulation",
     icon: FileText,
   },
   {
     title: "Student Overview",
-    url: "/calendar",
+    url: "/student-overview",
     icon: Calendar,
   },
   {
