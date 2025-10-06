@@ -1,6 +1,10 @@
 import Layout from "@/views/Layout";
-import Home from "@/views/Home";
 import { createBrowserRouter } from "react-router";
+import AtRiskView from "@/views/AtRiskView";
+import Simulations from "@/views/Simulations";
+import Prediction from "@/views/Prediction";
+import HomeOverview from "@/views/HomeOverview";
+
 
 const routes = createBrowserRouter([
   {
@@ -9,27 +13,19 @@ const routes = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home />,
-      },
-      {
-        path: "/performance-trends",
-        element: <div>Performance Trends Page</div>,
+        element: <HomeOverview />,
       },
       {
         path: "/predictions",
-        element: <div>Predictions Page</div>,
+        element: <Prediction />,
+      },
+      {
+        path: "/at-risk-view",
+        element: <AtRiskView />,
       },
       {
         path: "/simulation",
-        element: <div>Simulation Page</div>,
-      },
-      {
-        path: "/student-overview",
-        element: <div>Student Overview Page</div>,
-      },
-      {
-        path: "/settings",
-        element: <div>Settings Page</div>,
+        element: <Simulations />,
       },
     ],
   },

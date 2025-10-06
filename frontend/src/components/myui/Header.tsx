@@ -1,6 +1,7 @@
-import { Switch } from "@/components/ui/switch"
+
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import DropdownMenuWithIcon from "@/components/customized/dropdown-menu/dropdown-menu-02"
+import { ModeToggle } from "./ThemeToggle"
 
 export default function Header() {
   return (
@@ -13,9 +14,9 @@ export default function Header() {
 
       {/* Right side controls */}
       <div className="flex items-center gap-4 right-8 relative">
-        {/* Language Switch */}
+        {/* Theme Toggle */}
         <div className="flex items-center gap-2">
-          <Switch />
+          <ModeToggle />
         </div>
 
         {/* User Avatar with Dropdown */}

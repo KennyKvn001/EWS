@@ -1,12 +1,10 @@
 import * as React from "react"
 import { NavLink } from "react-router"
 import {
-  Home,
-  Users,
-  Settings,
-  BarChart3,
-  FileText,
-  Calendar,
+  SquareChartGantt,
+  BrainCircuit,
+  TriangleAlertIcon,
+  LayoutDashboardIcon,
 } from "lucide-react"
 
 import {
@@ -27,32 +25,22 @@ const items = [
   {
     title: "Overview",
     url: "/",
-    icon: Home,
-  },
-  {
-    title: "Performance Trends",
-    url: "/performance-trends",
-    icon: Users,
+    icon: LayoutDashboardIcon,
   },
   {
     title: "Predictions",
     url: "/predictions",
-    icon: BarChart3,
+    icon: BrainCircuit,
   },
   {
-    title: "Simulation",
+    title: "At-Risk Students",
+    url: "/at-risk-view",
+    icon: TriangleAlertIcon,
+  },
+  {
+    title: "Simulations",
     url: "/simulation",
-    icon: FileText,
-  },
-  {
-    title: "Student Overview",
-    url: "/student-overview",
-    icon: Calendar,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
+    icon: SquareChartGantt,
   },
 ]
 
@@ -77,18 +65,19 @@ export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sid
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink 
-                      to={item.url}
-                      className={({ isActive }) => 
-                        isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
-                      }
-                    >
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
+                <SidebarMenuItem key={item.title} className="cursor-pointer">
+                  <NavLink to={item.url}>
+                    {({ isActive }) => (
+                      <SidebarMenuButton 
+                        tooltip={item.title} 
+                        isActive={isActive}
+                        className={isActive ? "bg-primary border-b-2 text-primary-foreground shadow-sm" : "cursor-pointer;.'=-"}
+                      >
+                        <item.icon/>
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    )}
+                  </NavLink>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
