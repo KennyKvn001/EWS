@@ -9,6 +9,14 @@ Early Warning and Support System for student risk prediction.
 
 ---
 
+## Demo
+
+[Demo video](https://youtu.be/DRfHBF6c88o)
+
+## Repository
+
+[EWS on GitHub](https://github.com/KennyKvn001/EWS)
+
 ## Quick start
 
 ### Prerequisites
@@ -33,6 +41,18 @@ cd backend && uv pip install -e .
 
 # or with pip
 cd backend && pip install -e .
+```
+
+From `requirements.txt` (generated via uv):
+
+```
+cd backend
+
+# with uv (syncs exact pinned versions)
+uv pip sync requirements.txt
+
+# or with pip
+pip install -r requirements.txt
 ```
 
 3. Initialize DB tables:
