@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import uvicorn
 import logging
-from .db import get_db, create_tables, test_connection, get_db_health
+from .database.db import get_db, create_tables, test_connection, get_db_health
 from .models import Student
 from .database.schema import StudentCreate
 
@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
-    title="EWS Project ML API",
-    description="Early Warning System for Student Risk Prediction",
+    title="EWSS ML API",
+    description="Early Warning and Support System for Student Risk Prediction",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -23,7 +23,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # Frontend URLs
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

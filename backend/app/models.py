@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, Boolean, Float, DateTime, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from uuid import uuid4
-from .db import Base
+from .database.db import Base
 
 
 class Student(Base):
