@@ -58,7 +58,7 @@ export default function AtRiskView() {
   }
 
   return (
-    <div className="w-fit flex-col gap-4 p-4">
+    <div className="w-full flex-col gap-4 p-4">
       <h1 className="text-2xl font-bold">At Risk Students</h1>
       <div className="w-full">
         <EwsTable 

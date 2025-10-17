@@ -17,18 +17,18 @@ export default function HomeOverview() {
         </Card>
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Total Predictions</CardTitle>
+            <CardTitle>At Risk Students</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>100</p>
+            <p>50</p>
           </CardContent>
         </Card>
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Total Predictions</CardTitle>
+            <CardTitle>Success Predictions</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>100</p>
+            <p>50</p>
           </CardContent>
         </Card>
       </div>

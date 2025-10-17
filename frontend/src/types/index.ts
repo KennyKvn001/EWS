@@ -51,8 +51,11 @@ export {
   BatchUploadStatus,
 } from './batch';
 
-
-
+// Tab types
+export type {
+  TabConfig,
+  TabControllerProps,
+} from './tab';
 
 // Common form and UI types
 export interface FormError {

@@ -299,7 +299,7 @@ export default function CustomTable<T>({
       )}
 
       {/* Table */}
-      <div className="rounded-md border bg-card shadow-sm">
+      <div className="rounded-md border bg-card shadow-sm overflow-x-auto">
         <Table className={cn("w-full", className)}>
           <TableHeader>
             <TableRow>

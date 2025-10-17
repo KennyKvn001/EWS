@@ -9,12 +9,12 @@ import AppSidebar from '@/components/myui/AppSidebar'
 
 export default function Layout() {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-full w-full">
       <AppSidebar />
-      <SidebarInset>
-        <div className="w-full">
+      <SidebarInset className="overflow-hidden">
+        <div className="flex flex-col h-full w-full">
           <Header />
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-x-auto overflow-y-auto">
             <Outlet />
           </div>
         </div>
