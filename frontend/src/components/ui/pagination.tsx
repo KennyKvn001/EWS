@@ -58,6 +58,7 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
+        isActive && "border-[#2563eb] bg-[#2563eb]/10 text-[#2563eb] hover:bg-[#2563eb]/20 hover:text-[#2563eb] dark:border-[#60a5fa] dark:text-[#60a5fa]",
         className
       )}
       {...props}

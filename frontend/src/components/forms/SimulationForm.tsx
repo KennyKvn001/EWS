@@ -164,15 +164,12 @@ export default function SimulationForm() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card>
-            <CardHeader>
-              <CardTitle>What-If Scenario Simulator</CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="grid gap-8 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2">
                 {/* Age Slider */}
                 <FormField
                   control={form.control}
@@ -181,7 +178,7 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Age</FormLabel>
-                        <span className="text-sm font-semibold text-primary">{field.value}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
                       </div>
                       <FormControl>
                         <Slider
@@ -207,7 +204,7 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Attendance Score</FormLabel>
-                        <span className="text-sm font-semibold text-primary">{field.value}%</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}%</span>
                       </div>
                       <FormControl>
                         <Slider
@@ -233,7 +230,7 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Engagement Score</FormLabel>
-                        <span className="text-sm font-semibold text-primary">{field.value}%</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}%</span>
                       </div>
                       <FormControl>
                         <Slider
@@ -259,7 +256,7 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Repeated Courses</FormLabel>
-                        <span className="text-sm font-semibold text-primary">{field.value}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
                       </div>
                       <FormControl>
                         <Slider
@@ -403,13 +400,13 @@ export default function SimulationForm() {
               </div>
 
               {/* Submit Button */}
-              <div className="mt-8 flex justify-end">
+              <div className="mt-6 flex justify-end">
                 <Button 
                   type="submit" 
-                  className="text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
+                  className="bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Simulating..." : "Run Simulation"}
+                  {isLoading ? "Simulating..." : "Run Prediction"}
                 </Button>
               </div>
             </CardContent>
@@ -421,7 +418,7 @@ export default function SimulationForm() {
       {simulationResult && (
         <Card className="border-2">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold flex items-center justify-between">
               <span>Simulation Results</span>
               <Badge className={getRiskBadgeColor(simulationResult.risk_category)}>
                 {simulationResult.risk_category} Risk
@@ -433,7 +430,7 @@ export default function SimulationForm() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Risk Score</span>
-                <span className="text-2xl font-bold text-primary">
+                <span className="text-2xl font-bold text-[#2563eb] dark:text-[#60a5fa]">
                   {simulationResult.risk_score.toFixed(1)}%
                 </span>
               </div>
@@ -453,7 +450,7 @@ export default function SimulationForm() {
 
             {/* Recommendations */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Recommendations</h3>
+              <h3 className="text-base font-semibold mb-3">Recommendations</h3>
               <div className="space-y-2">
                 {simulationResult.recommendations.map((rec, index) => (
                   <Alert key={index}>
@@ -472,7 +469,7 @@ export default function SimulationForm() {
                 variant="outline"
                 onClick={() => setSimulationResult(null)}
               >
-                Run New Simulation
+                Run New Prediction
               </Button>
             </div>
           </CardContent>

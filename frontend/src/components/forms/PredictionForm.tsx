@@ -70,9 +70,9 @@ export default function PredictionForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-auto mx-auto mt-4">
-        <div className="bg-card rounded-xl border shadow-sm p-8">
-          <div className="grid gap-6 md:grid-cols-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+        <div className="bg-card rounded-xl border shadow-sm p-6">
+          <div className="grid gap-4 md:grid-cols-2">
             {/* Age */}
             <FormField
               control={form.control}
@@ -315,8 +315,8 @@ export default function PredictionForm() {
           </div>
 
           {/* Submit Button */}
-          <div className="mt-8 flex justify-end">
-            <Button type="submit" className="text-base font-semibold shadow-md hover:shadow-lg transition-shadow">
+          <div className="mt-6 flex justify-end">
+            <Button type="submit" className="bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all">
               Submit Prediction
             </Button>
           </div>

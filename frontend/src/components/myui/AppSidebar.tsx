@@ -1,27 +1,17 @@
-import * as React from "react"
 import { NavLink } from "react-router"
 import {
   SquareChartGantt,
   BrainCircuit,
   TriangleAlertIcon,
   LayoutDashboardIcon,
+  GraduationCap,
+  Settings,
+  HelpCircle,
+  LogOut,
 } from "lucide-react"
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-} from "@/components/ui/sidebar"
-
 // Menu items
-const items = [
+const menuItems = [
   {
     title: "Overview",
     url: "/",
@@ -44,48 +34,99 @@ const items = [
   },
 ]
 
-export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const generalItems = [
+  {
+    title: "Settings",
+    icon: Settings,
+    onClick: () => console.log('Settings'),
+  },
+  {
+    title: "Help",
+    icon: HelpCircle,
+    onClick: () => console.log('Help'),
+  },
+  {
+    title: "Logout",
+    icon: LogOut,
+    onClick: () => console.log('Logout'),
+  },
+]
+
+interface AppSidebarProps {
+  collapsed: boolean
+  onToggle: () => void
+}
+
+export default function AppSidebar({ collapsed }: AppSidebarProps) {
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-1 py-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            L
+    <aside 
+      className={`bg-gradient-to-b from-[#1e3a8a] via-[#2563eb] to-[#1e40af] rounded-xl p-4 flex flex-col shadow-xl transition-all duration-300 ${
+        collapsed ? 'w-20' : 'w-64'
+      }`}
+    >
+      {/* Logo */}
+      <div className={`flex items-center gap-3 mb-8 ${collapsed ? 'justify-center' : ''}`}>
+        <div className="flex aspect-square size-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm shrink-0">
+          <GraduationCap className="size-7 text-white" />
+        </div>
+        {!collapsed && (
+          <div className="flex flex-col">
+            <span className="text-xl font-bold text-white">EWS</span>
+            <span className="text-xs text-white/70">Early Warning System</span>
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">EWS App</span>
-            <span className="truncate text-xs">Dashboard</span>
+        )}
+      </div>
+
+      {/* MENU Section */}
+      <div className="flex flex-col flex-1">
+        {!collapsed && (
+          <div className="mb-4">
+            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold px-3">MENU</p>
+          </div>
+        )}
+        
+        <nav className="space-y-1 flex-1">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.url}
+              className={({ isActive }) =>
+                `flex items-center ${collapsed ? 'justify-center' : 'justify-between'} gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? "bg-[#1e40af] text-white shadow-lg"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                }`
+              }
+              title={collapsed ? item.title : undefined}
+            >
+              <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                <item.icon className="size-5 shrink-0" />
+                {!collapsed && <span className="font-medium text-sm">{item.title}</span>}
+              </div>
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* GENERAL Section */}
+        <div className="mt-6 pt-6 border-t border-white/10">
+          {!collapsed && (
+            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold px-3 mb-3">GENERAL</p>
+          )}
+          <div className="space-y-1">
+            {generalItems.map((item) => (
+              <button
+                key={item.title}
+                onClick={item.onClick}
+                className={`w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-white/80 hover:bg-white/10 hover:text-white`}
+                title={collapsed ? item.title : undefined}
+              >
+                <item.icon className="size-5 shrink-0" />
+                {!collapsed && <span className="font-medium text-sm">{item.title}</span>}
+              </button>
+            ))}
           </div>
         </div>
-      </SidebarHeader>
-      
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title} className="cursor-pointer">
-                  <NavLink to={item.url}>
-                    {({ isActive }) => (
-                      <SidebarMenuButton 
-                        tooltip={item.title} 
-                        isActive={isActive}
-                        className={isActive ? "bg-primary border-b-2 text-primary-foreground shadow-sm" : "cursor-pointer;.'=-"}
-                      >
-                        <item.icon/>
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      
-      <SidebarRail />
-    </Sidebar>
+      </div>
+    </aside>
   )
 }

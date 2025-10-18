@@ -69,11 +69,11 @@ export default function FileUploadForm() {
   };
 
   return (
-    <div className="max-w-full mx-auto mt-4">
-      <div className="bg-card rounded-xl border shadow-sm p-8">
-        <div className="space-y-6">
+    <div className="w-full">
+      <div className="bg-card rounded-xl border shadow-sm p-6">
+        <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Batch Upload</h3>
+            <h3 className="text-base font-semibold mb-1">Batch Upload</h3>
             <p className="text-sm text-muted-foreground">
               Upload a CSV or Excel file containing student data for batch predictions
             </p>
@@ -119,15 +119,15 @@ export default function FileUploadForm() {
             <Button 
               onClick={handleUpload} 
               disabled={!selectedFile || uploading}
-              className="w-full text-base font-semibold shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+              className="w-full bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <Upload className="mr-2 h-4 w-4" />
               {uploading ? 'Uploading...' : 'Upload & Predict'}
             </Button>
           </div>
 
-          <div className="mt-6 p-4 bg-muted/50 rounded-md">
-            <h4 className="text-sm font-medium mb-2">File Requirements:</h4>
+          <div className="mt-4 p-3 bg-muted/50 rounded-md">
+            <h4 className="text-xs font-semibold mb-2">File Requirements:</h4>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
               <li>File must contain all required student fields</li>
               <li>Column headers should match the expected format</li>
