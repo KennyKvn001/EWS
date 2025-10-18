@@ -60,7 +60,7 @@ interface AppSidebarProps {
 export default function AppSidebar({ collapsed }: AppSidebarProps) {
   return (
     <aside 
-      className={`bg-gradient-to-b from-[#1a5f56] via-[#16a085] to-[#0e6f5f] rounded-3xl p-4 flex flex-col shadow-xl transition-all duration-300 ${
+      className={`bg-gradient-to-b from-[#1a5f56] via-[#16a085] to-[#0e6f5f] rounded-xl p-4 flex flex-col shadow-xl transition-all duration-300 ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
