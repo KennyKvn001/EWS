@@ -41,25 +41,28 @@ export default function AtRiskView() {
 
   if (loading) {
     return (
-      <div className="w-full flex-col gap-4 p-4">
-        <h1 className="text-2xl font-bold">At Risk Students</h1>
-        <div>Loading students...</div>
+      <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm h-full">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">At Risk Students</h1>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Loading students...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="w-full flex-col gap-4 p-4">
-        <h1 className="text-2xl font-bold">At Risk Students</h1>
-        <div className="text-red-500">Error: {error}</div>
+      <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm h-full">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">At Risk Students</h1>
+        <div className="text-sm text-red-500">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="w-full flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">At Risk Students</h1>
+    <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm h-full overflow-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">At Risk Students</h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Monitor and track students requiring additional support</p>
+      </div>
       <div className="w-full">
         <EwsTable 
           data={students} 

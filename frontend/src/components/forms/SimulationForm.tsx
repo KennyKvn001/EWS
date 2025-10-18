@@ -164,15 +164,12 @@ export default function SimulationForm() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card>
-            <CardHeader>
-              <CardTitle>What-If Scenario Simulator</CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="grid gap-8 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2">
                 {/* Age Slider */}
                 <FormField
                   control={form.control}
@@ -403,10 +400,10 @@ export default function SimulationForm() {
               </div>
 
               {/* Submit Button */}
-              <div className="mt-8 flex justify-end">
+              <div className="mt-6 flex justify-end">
                 <Button 
                   type="submit" 
-                  className="text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
+                  className="bg-gradient-to-r from-[#16a085] to-[#0e6f5f] hover:from-[#138d75] hover:to-[#0c5e4f] text-white shadow-md hover:shadow-lg transition-all"
                   disabled={isLoading}
                 >
                   {isLoading ? "Simulating..." : "Run Simulation"}
@@ -421,7 +418,7 @@ export default function SimulationForm() {
       {simulationResult && (
         <Card className="border-2">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold flex items-center justify-between">
               <span>Simulation Results</span>
               <Badge className={getRiskBadgeColor(simulationResult.risk_category)}>
                 {simulationResult.risk_category} Risk
@@ -453,7 +450,7 @@ export default function SimulationForm() {
 
             {/* Recommendations */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Recommendations</h3>
+              <h3 className="text-base font-semibold mb-3">Recommendations</h3>
               <div className="space-y-2">
                 {simulationResult.recommendations.map((rec, index) => (
                   <Alert key={index}>

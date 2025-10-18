@@ -1,25 +1,33 @@
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import DropdownMenuWithIcon from "@/components/customized/dropdown-menu/dropdown-menu-02"
 import { ModeToggle } from "./ThemeToggle"
+import { Bell, PanelLeftClose, PanelLeft } from "lucide-react"
 
-export default function Header() {
+interface HeaderProps {
+  onToggleSidebar: () => void
+}
+
+export default function Header({ onToggleSidebar }: HeaderProps) {
   return (
-    <header className="flex shrink-0 justify-between bg-transparent py-4 px-4 border-b w-full">
-      {/* Left side - Sidebar trigger and Logo */}
-      <div className="flex items-center gap-4">
-        <SidebarTrigger className="-ml-1" />
-        <h1 className="text-xl font-bold">EWS</h1>
+    <header className="flex shrink-0 items-center justify-between bg-white dark:bg-gray-900 rounded-3xl py-5 px-8 shadow-sm">
+      {/* Left side - Sidebar Toggle */}
+      <div className="flex items-center">
+        <button 
+          onClick={onToggleSidebar}
+          className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+          title="Toggle Sidebar"
+        >
+          <PanelLeft className="size-5 text-gray-600 dark:text-gray-400" />
+        </button>
       </div>
 
       {/* Right side controls */}
-      <div className="flex items-center gap-4 right-8 relative">
-        {/* Theme Toggle */}
-        <div className="flex items-center gap-2">
-          <ModeToggle />
-        </div>
-
-        {/* User Avatar with Dropdown */}
+      <div className="flex items-center gap-2">
+        <button className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+          <Bell className="size-5 text-gray-600 dark:text-gray-400" />
+        </button>
+        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+        <ModeToggle />
         <DropdownMenuWithIcon />
       </div>
     </header>

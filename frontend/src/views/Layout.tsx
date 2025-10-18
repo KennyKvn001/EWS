@@ -1,24 +1,29 @@
 import { Outlet } from 'react-router'
+import { useState } from 'react'
 import Header from '@/components/myui/Header'
-
-import {
-  SidebarProvider,
-  SidebarInset,
-} from "@/components/ui/sidebar"
 import AppSidebar from '@/components/myui/AppSidebar'
 
 export default function Layout() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
   return (
-    <SidebarProvider className="h-full w-full">
-      <AppSidebar />
-      <SidebarInset className="overflow-hidden">
-        <div className="flex flex-col h-full w-full">
-          <Header />
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-x-auto overflow-y-auto">
-            <Outlet />
-          </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="h-full w-full bg-[#f5f5f7] dark:bg-gray-950 p-3 flex gap-4">
+      {/* Floating Sidebar */}
+      <AppSidebar 
+        collapsed={sidebarCollapsed} 
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+      />
+      
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col gap-4 min-w-0">
+        {/* Header inside main content */}
+        <Header onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        
+        {/* Content */}
+        <main className="flex-1 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
+    </div>
   )
 }

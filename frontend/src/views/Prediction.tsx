@@ -21,10 +21,10 @@ export default function Prediction() {
   ];
 
   return (
-    <div className="w-full space-y-6">
-      <div className="flex flex-col gap-2 mt-4">
-        <h1 className="text-3xl font-bold">Student Risk Prediction</h1>
-        <p className="text-muted-foreground">
+    <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm h-full overflow-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">Student Risk Prediction</h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Enter student information manually or upload a file for batch predictions
         </p>
       </div>
