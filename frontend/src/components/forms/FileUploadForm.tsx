@@ -119,7 +119,7 @@ export default function FileUploadForm() {
             <Button 
               onClick={handleUpload} 
               disabled={!selectedFile || uploading}
-              className="w-full bg-gradient-to-r from-[#16a085] to-[#0e6f5f] hover:from-[#138d75] hover:to-[#0c5e4f] text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
+              className="w-full bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <Upload className="mr-2 h-4 w-4" />
               {uploading ? 'Uploading...' : 'Upload & Predict'}

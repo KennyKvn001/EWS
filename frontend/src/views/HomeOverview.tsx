@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 
 export default function HomeOverview() {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl p-8 shadow-sm h-full">
+    <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm h-full">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">Dashboard</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">Monitor student performance and risk indicators</p>
@@ -11,7 +11,7 @@ export default function HomeOverview() {
       
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Students Card - Featured */}
-        <Card className="bg-gradient-to-br from-[#16a085] to-[#0e6f5f] border-none text-white relative overflow-hidden shadow-lg">
+        <Card className="bg-gradient-to-br from-[#2563eb] to-[#1e40af] border-none text-white relative overflow-hidden shadow-lg">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
             <div>

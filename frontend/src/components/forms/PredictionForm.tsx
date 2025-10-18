@@ -316,7 +316,7 @@ export default function PredictionForm() {
 
           {/* Submit Button */}
           <div className="mt-6 flex justify-end">
-            <Button type="submit" className="bg-gradient-to-r from-[#16a085] to-[#0e6f5f] hover:from-[#138d75] hover:to-[#0c5e4f] text-white shadow-md hover:shadow-lg transition-all">
+            <Button type="submit" className="bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all">
               Submit Prediction
             </Button>
           </div>

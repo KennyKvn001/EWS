@@ -13,8 +13,8 @@ function Checkbox({
       data-slot="checkbox"
       className={cn(
         "peer size-4 shrink-0 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 transition-colors outline-none",
-        "focus-visible:ring-2 focus-visible:ring-[#16a085]/20 focus-visible:border-[#16a085]",
-        "data-[state=checked]:bg-[#16a085] data-[state=checked]:border-[#16a085] data-[state=checked]:text-white",
+        "focus-visible:ring-2 focus-visible:ring-[#2563eb]/20 focus-visible:border-[#2563eb]",
+        "data-[state=checked]:bg-[#2563eb] data-[state=checked]:border-[#2563eb] data-[state=checked]:text-white",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}

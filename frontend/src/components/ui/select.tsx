@@ -36,7 +36,7 @@ function SelectTrigger({
       data-size={size}
       className={cn(
         "flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 transition-colors outline-none",
-        "focus:border-[#16a085] focus:ring-2 focus:ring-[#16a085]/20",
+        "focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/20",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "data-[placeholder]:text-gray-500 dark:data-[placeholder]:text-gray-400",
         "data-[size=default]:h-10 data-[size=sm]:h-9",

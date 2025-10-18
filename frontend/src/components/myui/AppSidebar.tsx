@@ -60,7 +60,7 @@ interface AppSidebarProps {
 export default function AppSidebar({ collapsed }: AppSidebarProps) {
   return (
     <aside 
-      className={`bg-gradient-to-b from-[#1a5f56] via-[#16a085] to-[#0e6f5f] rounded-xl p-4 flex flex-col shadow-xl transition-all duration-300 ${
+      className={`bg-gradient-to-b from-[#1e3a8a] via-[#2563eb] to-[#1e40af] rounded-xl p-4 flex flex-col shadow-xl transition-all duration-300 ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
@@ -93,7 +93,7 @@ export default function AppSidebar({ collapsed }: AppSidebarProps) {
               className={({ isActive }) =>
                 `flex items-center ${collapsed ? 'justify-center' : 'justify-between'} gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? "bg-[#0d4d45] text-white shadow-lg"
+                    ? "bg-[#1e40af] text-white shadow-lg"
                     : "text-white/80 hover:bg-white/10 hover:text-white"
                 }`
               }
