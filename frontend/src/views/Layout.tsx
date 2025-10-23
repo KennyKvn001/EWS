@@ -11,7 +11,7 @@ export default function Layout() {
   }, [sidebarCollapsed])
 
   return (
-    <div className="h-full w-full bg-[#f5f5f7] dark:bg-gray-950 p-3 flex gap-4">
+    <div className="h-full w-full bg-[#d4d4d4]/30 dark:bg-gray-950 p-3 flex gap-4">
       {/* Floating Sidebar */}
       <AppSidebar 
         collapsed={sidebarCollapsed} 

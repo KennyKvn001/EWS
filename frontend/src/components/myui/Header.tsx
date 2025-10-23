@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export default function Header({ onToggleSidebar }: HeaderProps) {
   return (
-    <header className="flex shrink-0 items-center justify-between bg-white dark:bg-gray-900 rounded-xl py-5 px-8 shadow-sm">
+    <header className="flex shrink-0 items-center justify-between bg-white dark:bg-gray-900 rounded-xl py-3 px-8 shadow-sm">
       {/* Left side - Sidebar Toggle */}
       <div className="flex items-center">
         <button 
