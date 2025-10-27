@@ -4,16 +4,16 @@
 
 export interface Student {
   id: string;
-  age: number;
-  marital_status: number;
-  employed: boolean;
-  scholarship: boolean;
-  student_loan: boolean;
-  attendance_score: number;
-  study_mode: number;
-  internet_access: boolean;
-  engagement_score: number;
-  repeated_course: number;
+  age_at_enrollment: number;
+  gender: string;
+  total_units_approved: number;
+  average_grade: number;
+  total_units_evaluated: number;
+  total_units_enrolled: number;
+  previous_qualification_grade: number;
+  tuition_fees_up_to_date: boolean;
+  scholarship_holder: boolean;
+  debtor: boolean;
   uploaded_by: string;
   created_at?: string;
   updated_at?: string;
@@ -23,16 +23,16 @@ export interface Student {
 }
 
 export interface StudentCreate {
-  age: number;
-  marital_status: number;
-  employed: boolean;
-  scholarship: boolean;
-  student_loan: boolean;
-  attendance_score: number;
-  study_mode: number;
-  internet_access: boolean;
-  engagement_score: number;
-  repeated_course: number;
+  age_at_enrollment: number;
+  gender: string;
+  total_units_approved: number;
+  average_grade: number;
+  total_units_evaluated: number;
+  total_units_enrolled: number;
+  previous_qualification_grade: number;
+  tuition_fees_up_to_date: boolean;
+  scholarship_holder: boolean;
+  debtor: boolean;
   uploaded_by: string;
 }
 
@@ -41,23 +41,16 @@ export interface BatchCreate {
 }
 
 // Enums and constants for better type safety
-export const MaritalStatus = {
-  SINGLE: 1,
-  MARRIED: 2,
-}
-
-export const StudyMode = {
-  FULL_TIME: 1,
-  PART_TIME: 2,
-  ONLINE: 3,
-}
+export const Gender = {
+  MALE: 'male',
+  FEMALE: 'female',
+} as const;
 
 export const RiskCategory = {
   LOW: 'low',
   MEDIUM: 'medium',
   HIGH: 'high',
-}
+} as const;
 
-export type MaritalStatusType = typeof MaritalStatus[keyof typeof MaritalStatus];
-export type StudyModeType = typeof StudyMode[keyof typeof StudyMode];
+export type GenderType = typeof Gender[keyof typeof Gender];
 export type RiskCategoryType = typeof RiskCategory[keyof typeof RiskCategory];

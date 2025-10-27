@@ -17,28 +17,26 @@ class Student(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, index=True)
 
     # Student demographic information
-    age = Column(Integer, nullable=False, doc="Student age")
-    marital_status = Column(Integer, nullable=False, doc="Marital status code")
-    employed = Column(Boolean, nullable=False, default=False, doc="Employment status")
-
-    # Financial information
-    scholarship = Column(Boolean, nullable=False, default=False, doc="Has scholarship")
-    student_loan = Column(
-        Boolean, nullable=False, default=False, doc="Has student loan"
-    )
+    age_at_enrollment = Column(Integer, nullable=False, doc="Student age at enrollment")
+    gender = Column(String(10), nullable=False, doc="Student gender (male/female)")
 
     # Academic information
-    attendance_score = Column(Float, nullable=False, doc="Attendance score")
-    study_mode = Column(Integer, nullable=False, doc="Study mode code")
-    engagement_score = Column(Float, nullable=False, doc="Engagement score")
-    repeated_course = Column(
-        Float, nullable=False, default=0.0, doc="Number of repeated courses"
+    total_units_approved = Column(Float, nullable=False, doc="Total units approved")
+    average_grade = Column(Float, nullable=False, doc="Average grade")
+    total_units_evaluated = Column(Float, nullable=False, doc="Total units evaluated")
+    total_units_enrolled = Column(Float, nullable=False, doc="Total units enrolled")
+    previous_qualification_grade = Column(
+        Float, nullable=False, doc="Previous qualification grade"
     )
 
-    # Technical information
-    internet_access = Column(
-        Boolean, nullable=False, default=True, doc="Has internet access"
+    # Financial information
+    tuition_fees_up_to_date = Column(
+        Boolean, nullable=False, default=False, doc="Tuition fees up to date status"
     )
+    scholarship_holder = Column(
+        Boolean, nullable=False, default=False, doc="Has scholarship"
+    )
+    debtor = Column(Boolean, nullable=False, default=False, doc="Is a debtor")
 
     # Metadata
     uploaded_by = Column(String(255), nullable=False, doc="User who uploaded the data")
@@ -64,24 +62,22 @@ class Student(Base):
     )
 
     def __repr__(self):
-        return (
-            f"<Student(id={self.id}, age={self.age}, uploaded_by='{self.uploaded_by}')>"
-        )
+        return f"<Student(id={self.id}, age_at_enrollment={self.age_at_enrollment}, uploaded_by='{self.uploaded_by}')>"
 
     def to_dict(self):
         """Convert model instance to dictionary"""
         return {
             "id": str(self.id),
-            "age": self.age,
-            "marital_status": self.marital_status,
-            "employed": self.employed,
-            "scholarship": self.scholarship,
-            "student_loan": self.student_loan,
-            "attendance_score": self.attendance_score,
-            "study_mode": self.study_mode,
-            "internet_access": self.internet_access,
-            "engagement_score": self.engagement_score,
-            "repeated_course": self.repeated_course,
+            "age_at_enrollment": self.age_at_enrollment,
+            "gender": self.gender,
+            "total_units_approved": self.total_units_approved,
+            "average_grade": self.average_grade,
+            "total_units_evaluated": self.total_units_evaluated,
+            "total_units_enrolled": self.total_units_enrolled,
+            "previous_qualification_grade": self.previous_qualification_grade,
+            "tuition_fees_up_to_date": self.tuition_fees_up_to_date,
+            "scholarship_holder": self.scholarship_holder,
+            "debtor": self.debtor,
             "uploaded_by": self.uploaded_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

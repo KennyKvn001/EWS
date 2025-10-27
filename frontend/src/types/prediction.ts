@@ -49,43 +49,43 @@ export interface BatchPredictionResponse {
 }
 
 export interface UserFriendlyPredictionInput {
-  Age: number;
-  Marital_Status: number;
-  Currently_Employed: boolean;
+  Total_Units_Approved: number;
+  Average_Grade: number;
+  Age_At_Enrollment: number;
+  Total_Units_Evaluated: number;
+  Total_Units_Enrolled: number;
+  Previous_Qualification_Grade: number;
+  Tuition_Fees_Up_To_Date: boolean;
   Scholarship_Holder: boolean;
-  Has_Student_Loan: boolean;
-  Attendance_Score: number;
-  Study_Mode: number;
-  Internet_Access: boolean;
-  Engagement_Score: number;
-  Repeated_Courses: number;
+  Debtor: boolean;
+  Gender: string;
 }
 
 export interface PredictionInputMapping {
   /** Maps user-friendly field names to backend schema field names */
-  Age: 'age';
-  Marital_Status: 'marital_status';
-  Currently_Employed: 'employed';
-  Scholarship_Holder: 'scholarship';
-  Has_Student_Loan: 'student_loan';
-  Attendance_Score: 'attendance_score';
-  Study_Mode: 'study_mode';
-  Internet_Access: 'internet_access';
-  Engagement_Score: 'engagement_score';
-  Repeated_Courses: 'repeated_course';
+  Total_Units_Approved: 'total_units_approved';
+  Average_Grade: 'average_grade';
+  Age_At_Enrollment: 'age_at_enrollment';
+  Total_Units_Evaluated: 'total_units_evaluated';
+  Total_Units_Enrolled: 'total_units_enrolled';
+  Previous_Qualification_Grade: 'previous_qualification_grade';
+  Tuition_Fees_Up_To_Date: 'tuition_fees_up_to_date';
+  Scholarship_Holder: 'scholarship_holder';
+  Debtor: 'debtor';
+  Gender: 'gender';
 }
 
 export const PREDICTION_FIELD_MAPPING: PredictionInputMapping = {
-  Age: 'age',
-  Marital_Status: 'marital_status',
-  Currently_Employed: 'employed',
-  Scholarship_Holder: 'scholarship',
-  Has_Student_Loan: 'student_loan',
-  Attendance_Score: 'attendance_score',
-  Study_Mode: 'study_mode',
-  Internet_Access: 'internet_access',
-  Engagement_Score: 'engagement_score',
-  Repeated_Courses: 'repeated_course',
+  Total_Units_Approved: 'total_units_approved',
+  Average_Grade: 'average_grade',
+  Age_At_Enrollment: 'age_at_enrollment',
+  Total_Units_Evaluated: 'total_units_evaluated',
+  Total_Units_Enrolled: 'total_units_enrolled',
+  Previous_Qualification_Grade: 'previous_qualification_grade',
+  Tuition_Fees_Up_To_Date: 'tuition_fees_up_to_date',
+  Scholarship_Holder: 'scholarship_holder',
+  Debtor: 'debtor',
+  Gender: 'gender',
 };
 
 /**
@@ -96,16 +96,16 @@ export function convertToBackendFormat(
   uploadedBy: string
 ): Omit<import('./student').StudentCreate, 'uploaded_by'> & { uploaded_by: string } {
   return {
-    age: userInput.Age,
-    marital_status: userInput.Marital_Status,
-    employed: userInput.Currently_Employed,
-    scholarship: userInput.Scholarship_Holder,
-    student_loan: userInput.Has_Student_Loan,
-    attendance_score: userInput.Attendance_Score,
-    study_mode: userInput.Study_Mode,
-    internet_access: userInput.Internet_Access,
-    engagement_score: userInput.Engagement_Score,
-    repeated_course: userInput.Repeated_Courses,
+    total_units_approved: userInput.Total_Units_Approved,
+    average_grade: userInput.Average_Grade,
+    age_at_enrollment: userInput.Age_At_Enrollment,
+    total_units_evaluated: userInput.Total_Units_Evaluated,
+    total_units_enrolled: userInput.Total_Units_Enrolled,
+    previous_qualification_grade: userInput.Previous_Qualification_Grade,
+    tuition_fees_up_to_date: userInput.Tuition_Fees_Up_To_Date,
+    scholarship_holder: userInput.Scholarship_Holder,
+    debtor: userInput.Debtor,
+    gender: userInput.Gender,
     uploaded_by: uploadedBy,
   };
 }
@@ -117,15 +117,15 @@ export function convertFromBackendFormat(
   backendData: import('./student').Student | import('./student').StudentCreate
 ): UserFriendlyPredictionInput {
   return {
-    Age: backendData.age,
-    Marital_Status: backendData.marital_status,
-    Currently_Employed: backendData.employed,
-    Scholarship_Holder: backendData.scholarship,
-    Has_Student_Loan: backendData.student_loan,
-    Attendance_Score: backendData.attendance_score,
-    Study_Mode: backendData.study_mode,
-    Internet_Access: backendData.internet_access,
-    Engagement_Score: backendData.engagement_score,
-    Repeated_Courses: backendData.repeated_course,
+    Total_Units_Approved: backendData.total_units_approved,
+    Average_Grade: backendData.average_grade,
+    Age_At_Enrollment: backendData.age_at_enrollment,
+    Total_Units_Evaluated: backendData.total_units_evaluated,
+    Total_Units_Enrolled: backendData.total_units_enrolled,
+    Previous_Qualification_Grade: backendData.previous_qualification_grade,
+    Tuition_Fees_Up_To_Date: backendData.tuition_fees_up_to_date,
+    Scholarship_Holder: backendData.scholarship_holder,
+    Debtor: backendData.debtor,
+    Gender: backendData.gender,
   };
 }

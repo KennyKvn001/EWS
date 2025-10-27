@@ -24,16 +24,16 @@ import {
 
 // Validation schema
 const formSchema = z.object({
-  age: z.number().min(15, "Age must be at least 15").max(100, "Age must be less than 100"),
-  marital_status: z.enum(["1", "2"]),
-  employed: z.boolean(),
-  scholarship: z.boolean(),
-  student_loan: z.boolean(),
-  attendance_score: z.number().min(0, "Score must be at least 0").max(100, "Score must be at most 100"),
-  study_mode: z.enum(["1", "2"]),
-  engagement_score: z.number().min(0, "Score must be at least 0").max(100, "Score must be at most 100"),
-  repeated_course: z.number().min(0, "Cannot be negative").max(10, "Maximum 10 courses"),
-  internet_access: z.boolean(),
+  total_units_approved: z.number().min(0, "Cannot be negative"),
+  average_grade: z.number().min(0, "Grade must be at least 0").max(20, "Grade must be at most 20"),
+  age_at_enrollment: z.number().min(15, "Age must be at least 15").max(100, "Age must be less than 100"),
+  total_units_evaluated: z.number().min(0, "Cannot be negative"),
+  total_units_enrolled: z.number().min(0, "Cannot be negative"),
+  previous_qualification_grade: z.number().min(0, "Grade must be at least 0").max(200, "Grade must be at most 200"),
+  tuition_fees_up_to_date: z.boolean(),
+  scholarship_holder: z.boolean(),
+  debtor: z.boolean(),
+  gender: z.enum(["male", "female"]),
   uploaded_by: z.string().min(1, "This field is required"),
 });
 
@@ -43,29 +43,24 @@ export default function PredictionForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      age: undefined,
-      marital_status: undefined,
-      employed: false,
-      scholarship: false,
-      student_loan: false,
-      attendance_score: undefined,
-      study_mode: undefined,
-      engagement_score: undefined,
-      repeated_course: 0,
-      internet_access: false,
+      total_units_approved: undefined,
+      average_grade: undefined,
+      age_at_enrollment: undefined,
+      total_units_evaluated: undefined,
+      total_units_enrolled: undefined,
+      previous_qualification_grade: undefined,
+      tuition_fees_up_to_date: false,
+      scholarship_holder: false,
+      debtor: false,
+      gender: undefined,
       uploaded_by: "",
     },
   });
 
   const onSubmit = (data: FormValues) => {
     console.log("Form submitted with data:", data);
-    // Transform data to match backend schema
-    const transformedData = {
-      ...data,
-      marital_status: parseInt(data.marital_status),
-      study_mode: parseInt(data.study_mode),
-    };
-    console.log("Transformed data for backend:", transformedData);
+    // Data is already in the correct format for backend
+    console.log("Data for backend:", data);
   };
 
   return (
@@ -73,13 +68,58 @@ export default function PredictionForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
         <div className="bg-card rounded-xl border shadow-sm p-6">
           <div className="grid gap-4 md:grid-cols-2">
-            {/* Age */}
+            {/* Total Units Approved */}
             <FormField
               control={form.control}
-              name="age"
+              name="total_units_approved"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Age</FormLabel>
+                  <FormLabel>Total Units Approved</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Enter total units approved"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                    />
+                  </FormControl>
+                  <FormDescription>Total number of units approved</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Average Grade */}
+            <FormField
+              control={form.control}
+              name="average_grade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Average Grade</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Enter average grade (0-20)"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Student's average grade (0-20 scale)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Age at Enrollment */}
+            <FormField
+              control={form.control}
+              name="age_at_enrollment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Age at Enrollment</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -88,176 +128,89 @@ export default function PredictionForm() {
                       onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
                     />
                   </FormControl>
-                  <FormDescription>Student's age (15-100 years)</FormDescription>
+                  <FormDescription>Student's age at enrollment (15-100 years)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Attendance Score */}
+            {/* Total Units Evaluated */}
             <FormField
               control={form.control}
-              name="attendance_score"
+              name="total_units_evaluated"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Attendance Score</FormLabel>
+                  <FormLabel>Total Units Evaluated</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter score (0-100)"
+                      placeholder="Enter total units evaluated"
                       value={field.value || ""}
                       onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
                     />
                   </FormControl>
                   <FormDescription>
-                    Student's attendance score (0-100)
+                    Total number of units evaluated
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Engagement Score */}
+            {/* Total Units Enrolled */}
             <FormField
               control={form.control}
-              name="engagement_score"
+              name="total_units_enrolled"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Engagement Score</FormLabel>
+                  <FormLabel>Total Units Enrolled</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter score (0-100)"
+                      placeholder="Enter total units enrolled"
                       value={field.value || ""}
                       onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
                     />
                   </FormControl>
                   <FormDescription>
-                    Student's engagement score (0-100)
+                    Total number of units enrolled
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Repeated Courses */}
+            {/* Previous Qualification Grade */}
             <FormField
               control={form.control}
-              name="repeated_course"
+              name="previous_qualification_grade"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Repeated Courses</FormLabel>
+                  <FormLabel>Previous Qualification (Grade)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Number of repeated courses"
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                      step="0.01"
+                      placeholder="Enter previous qualification grade"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
                     />
                   </FormControl>
                   <FormDescription>
-                    Number of courses repeated (0-10)
+                    Grade from previous qualification (0-200)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Employed */}
+            {/* Gender */}
             <FormField
               control={form.control}
-              name="employed"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Employed</FormLabel>
-                    <FormDescription>
-                      Check if the student is currently employed
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {/* Scholarship */}
-            <FormField
-              control={form.control}
-              name="scholarship"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Scholarship</FormLabel>
-                    <FormDescription>
-                      Check if the student has a scholarship
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {/* Student Loan */}
-            <FormField
-              control={form.control}
-              name="student_loan"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Student Loan</FormLabel>
-                    <FormDescription>
-                      Check if the student has a student loan
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {/* Internet Access */}
-            <FormField
-              control={form.control}
-              name="internet_access"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Internet Access</FormLabel>
-                    <FormDescription>
-                      Check if the student has reliable internet access
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {/* Marital Status */}
-            <FormField
-              control={form.control}
-              name="marital_status"
+              name="gender"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Marital Status</FormLabel>
+                  <FormLabel>Gender</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -266,18 +219,18 @@ export default function PredictionForm() {
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="1" />
+                          <RadioGroupItem value="female" />
                         </FormControl>
                         <FormLabel className="font-normal cursor-pointer">
-                          Single
+                          Female
                         </FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="2" />
+                          <RadioGroupItem value="male" />
                         </FormControl>
                         <FormLabel className="font-normal cursor-pointer">
-                          Married
+                          Male
                         </FormLabel>
                       </FormItem>
                     </RadioGroup>
@@ -286,29 +239,69 @@ export default function PredictionForm() {
                 </FormItem>
               )}
             />
-            
-            {/* Study Mode */}
+
+            {/* Tuition Fees Up to Date */}
             <FormField
               control={form.control}
-              name="study_mode"
+              name="tuition_fees_up_to_date"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Study Mode</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select study mode" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">Full-time</SelectItem>
-                      <SelectItem value="2">Part-time</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Student's enrollment type
-                  </FormDescription>
-                  <FormMessage />
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Tuition Fees Up to Date</FormLabel>
+                    <FormDescription>
+                      Check if tuition fees are up to date
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {/* Scholarship Holder */}
+            <FormField
+              control={form.control}
+              name="scholarship_holder"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Scholarship Holder</FormLabel>
+                    <FormDescription>
+                      Check if the student has a scholarship
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {/* Debtor */}
+            <FormField
+              control={form.control}
+              name="debtor"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Debtor</FormLabel>
+                    <FormDescription>
+                      Check if the student is a debtor
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />

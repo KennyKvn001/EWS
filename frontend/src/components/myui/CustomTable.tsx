@@ -78,7 +78,7 @@ export interface CustomTableProps<T> {
 }
 
 export default function CustomTable<T>({
-  data,
+  data = [],
   columns,
   className = "",
   pagination = { enabled: true, pageSize: 10, showInfo: true },

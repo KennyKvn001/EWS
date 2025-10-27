@@ -28,16 +28,16 @@ import { Badge } from "@/components/ui/badge";
 
 // Validation schema
 const formSchema = z.object({
-  age: z.number().min(15, "Age must be at least 15").max(100, "Age must be less than 100"),
-  marital_status: z.enum(["1", "2"]),
-  employed: z.boolean(),
-  scholarship: z.boolean(),
-  student_loan: z.boolean(),
-  attendance_score: z.number().min(0, "Score must be at least 0").max(100, "Score must be at most 100"),
-  study_mode: z.enum(["1", "2"]),
-  engagement_score: z.number().min(0, "Score must be at least 0").max(100, "Score must be at most 100"),
-  repeated_course: z.number().min(0, "Cannot be negative").max(10, "Maximum 10 courses"),
-  internet_access: z.boolean(),
+  total_units_approved: z.number().min(0, "Cannot be negative"),
+  average_grade: z.number().min(0, "Grade must be at least 0").max(20, "Grade must be at most 20"),
+  age_at_enrollment: z.number().min(15, "Age must be at least 15").max(100, "Age must be less than 100"),
+  total_units_evaluated: z.number().min(0, "Cannot be negative"),
+  total_units_enrolled: z.number().min(0, "Cannot be negative"),
+  previous_qualification_grade: z.number().min(0, "Grade must be at least 0").max(200, "Grade must be at most 200"),
+  tuition_fees_up_to_date: z.boolean(),
+  scholarship_holder: z.boolean(),
+  debtor: z.boolean(),
+  gender: z.enum(["male", "female"]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -55,16 +55,16 @@ export default function SimulationForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      age: 20,
-      marital_status: "1",
-      employed: false,
-      scholarship: false,
-      student_loan: false,
-      attendance_score: 75,
-      study_mode: "1",
-      engagement_score: 75,
-      repeated_course: 0,
-      internet_access: true,
+      total_units_approved: 20,
+      average_grade: 12,
+      age_at_enrollment: 20,
+      total_units_evaluated: 20,
+      total_units_enrolled: 25,
+      previous_qualification_grade: 120,
+      tuition_fees_up_to_date: true,
+      scholarship_holder: false,
+      debtor: false,
+      gender: "female",
     },
   });
 
@@ -91,26 +91,30 @@ export default function SimulationForm() {
   const calculateMockRiskScore = (data: FormValues): number => {
     let score = 50; // Base score
     
-    // Attendance impact
-    score += (100 - data.attendance_score) * 0.3;
+    // Academic performance impact
+    const gradePerformance = (data.average_grade / 20) * 100; // Convert to percentage
+    score -= (gradePerformance - 50) * 0.4; // Better grades = lower risk
     
-    // Engagement impact
-    score += (100 - data.engagement_score) * 0.3;
-    
-    // Repeated courses impact
-    score += data.repeated_course * 5;
+    // Units completion rate
+    const completionRate = data.total_units_evaluated > 0 
+      ? (data.total_units_approved / data.total_units_evaluated) * 100 
+      : 50;
+    score -= (completionRate - 50) * 0.3;
     
     // Age impact (younger students slightly higher risk)
-    if (data.age < 20) score += 5;
+    if (data.age_at_enrollment < 20) score += 5;
+    
+    // Previous qualification impact
+    const prevQualPerformance = (data.previous_qualification_grade / 200) * 100;
+    score -= (prevQualPerformance - 50) * 0.2;
     
     // Positive factors
-    if (data.scholarship) score -= 10;
-    if (data.internet_access) score -= 5;
-    if (data.study_mode === "1") score -= 5; // Full-time
+    if (data.scholarship_holder) score -= 10;
+    if (data.tuition_fees_up_to_date) score -= 8;
     
     // Negative factors
-    if (data.employed) score += 8;
-    if (data.student_loan) score += 5;
+    if (data.debtor) score += 15;
+    if (data.gender === "male") score += 3; // Slight statistical difference
     
     return Math.max(0, Math.min(100, score));
   };
@@ -124,23 +128,32 @@ export default function SimulationForm() {
   const getRecommendations = (data: FormValues, riskScore: number): string[] => {
     const recommendations: string[] = [];
     
-    if (data.attendance_score < 70) {
-      recommendations.push("Improve attendance - aim for at least 80% attendance rate");
+    if (data.average_grade < 10) {
+      recommendations.push("Focus on improving academic grades - seek tutoring if needed");
     }
-    if (data.engagement_score < 70) {
-      recommendations.push("Increase engagement - participate more in class activities and discussions");
+    
+    const completionRate = data.total_units_evaluated > 0 
+      ? (data.total_units_approved / data.total_units_evaluated) * 100 
+      : 100;
+    
+    if (completionRate < 70) {
+      recommendations.push("Work on completing more enrolled units successfully");
     }
-    if (data.repeated_course > 2) {
-      recommendations.push("Seek academic support to avoid repeating courses");
+    
+    if (data.debtor) {
+      recommendations.push("Address outstanding debts to reduce financial stress");
     }
-    if (!data.internet_access) {
-      recommendations.push("Secure reliable internet access for better learning outcomes");
+    
+    if (!data.tuition_fees_up_to_date) {
+      recommendations.push("Ensure tuition fees are up to date to avoid administrative issues");
     }
-    if (data.employed && riskScore > 50) {
-      recommendations.push("Consider reducing work hours to focus more on studies");
-    }
-    if (!data.scholarship && riskScore > 60) {
+    
+    if (!data.scholarship_holder && riskScore > 60) {
       recommendations.push("Explore scholarship opportunities to reduce financial burden");
+    }
+    
+    if (data.age_at_enrollment < 19) {
+      recommendations.push("Consider academic support services for younger students");
     }
     
     if (recommendations.length === 0) {
@@ -170,14 +183,66 @@ export default function SimulationForm() {
           <Card>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
-                {/* Age Slider */}
+                {/* Total Units Approved Slider */}
                 <FormField
                   control={form.control}
-                  name="age"
+                  name="total_units_approved"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex justify-between items-center">
-                        <FormLabel>Age</FormLabel>
+                        <FormLabel>Total Units Approved</FormLabel>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                      </div>
+                      <FormControl>
+                        <Slider
+                          min={0}
+                          max={60}
+                          step={1}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormDescription>Number of units approved (0-60)</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Average Grade Slider */}
+                <FormField
+                  control={form.control}
+                  name="average_grade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex justify-between items-center">
+                        <FormLabel>Average Grade</FormLabel>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value.toFixed(1)}</span>
+                      </div>
+                      <FormControl>
+                        <Slider
+                          min={0}
+                          max={20}
+                          step={0.1}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormDescription>Student's average grade (0-20 scale)</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Age at Enrollment Slider */}
+                <FormField
+                  control={form.control}
+                  name="age_at_enrollment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex justify-between items-center">
+                        <FormLabel>Age at Enrollment</FormLabel>
                         <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
                       </div>
                       <FormControl>
@@ -190,99 +255,131 @@ export default function SimulationForm() {
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Adjust student's age (15-100 years)</FormDescription>
+                      <FormDescription>Student's age at enrollment (15-100 years)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Attendance Score Slider */}
+                {/* Total Units Evaluated Slider */}
                 <FormField
                   control={form.control}
-                  name="attendance_score"
+                  name="total_units_evaluated"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex justify-between items-center">
-                        <FormLabel>Attendance Score</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}%</span>
-                      </div>
-                      <FormControl>
-                        <Slider
-                          min={0}
-                          max={100}
-                          step={1}
-                          value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormDescription>Student's attendance rate (0-100%)</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Engagement Score Slider */}
-                <FormField
-                  control={form.control}
-                  name="engagement_score"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex justify-between items-center">
-                        <FormLabel>Engagement Score</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}%</span>
-                      </div>
-                      <FormControl>
-                        <Slider
-                          min={0}
-                          max={100}
-                          step={1}
-                          value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormDescription>Student's engagement level (0-100%)</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Repeated Courses Slider */}
-                <FormField
-                  control={form.control}
-                  name="repeated_course"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex justify-between items-center">
-                        <FormLabel>Repeated Courses</FormLabel>
+                        <FormLabel>Total Units Evaluated</FormLabel>
                         <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
                       </div>
                       <FormControl>
                         <Slider
                           min={0}
-                          max={10}
+                          max={60}
                           step={1}
                           value={[field.value]}
                           onValueChange={(vals) => field.onChange(vals[0])}
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Number of courses repeated (0-10)</FormDescription>
+                      <FormDescription>Number of units evaluated (0-60)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Employed Switch */}
+                {/* Total Units Enrolled Slider */}
                 <FormField
                   control={form.control}
-                  name="employed"
+                  name="total_units_enrolled"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex justify-between items-center">
+                        <FormLabel>Total Units Enrolled</FormLabel>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                      </div>
+                      <FormControl>
+                        <Slider
+                          min={0}
+                          max={60}
+                          step={1}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormDescription>Number of units enrolled (0-60)</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Previous Qualification Grade Slider */}
+                <FormField
+                  control={form.control}
+                  name="previous_qualification_grade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex justify-between items-center">
+                        <FormLabel>Previous Qualification (Grade)</FormLabel>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                      </div>
+                      <FormControl>
+                        <Slider
+                          min={0}
+                          max={200}
+                          step={1}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormDescription>Grade from previous qualification (0-200)</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Gender */}
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Gender</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="female" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">Female</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="male" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">Male</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Tuition Fees Up to Date Switch */}
+                <FormField
+                  control={form.control}
+                  name="tuition_fees_up_to_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Employed</FormLabel>
-                        <FormDescription>Is the student currently employed?</FormDescription>
+                        <FormLabel className="text-base">Tuition Fees Up to Date</FormLabel>
+                        <FormDescription>Are tuition fees up to date?</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -291,14 +388,14 @@ export default function SimulationForm() {
                   )}
                 />
 
-                {/* Scholarship Switch */}
+                {/* Scholarship Holder Switch */}
                 <FormField
                   control={form.control}
-                  name="scholarship"
+                  name="scholarship_holder"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Scholarship</FormLabel>
+                        <FormLabel className="text-base">Scholarship Holder</FormLabel>
                         <FormDescription>Does the student have a scholarship?</FormDescription>
                       </div>
                       <FormControl>
@@ -308,92 +405,19 @@ export default function SimulationForm() {
                   )}
                 />
 
-                {/* Student Loan Switch */}
+                {/* Debtor Switch */}
                 <FormField
                   control={form.control}
-                  name="student_loan"
+                  name="debtor"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Student Loan</FormLabel>
-                        <FormDescription>Does the student have a student loan?</FormDescription>
+                        <FormLabel className="text-base">Debtor</FormLabel>
+                        <FormDescription>Is the student a debtor?</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {/* Internet Access Switch */}
-                <FormField
-                  control={form.control}
-                  name="internet_access"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Internet Access</FormLabel>
-                        <FormDescription>Does the student have reliable internet?</FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {/* Marital Status */}
-                <FormField
-                  control={form.control}
-                  name="marital_status"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Marital Status</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="1" />
-                            </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Single</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="2" />
-                            </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Married</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Study Mode */}
-                <FormField
-                  control={form.control}
-                  name="study_mode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Study Mode</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select study mode" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">Full-time</SelectItem>
-                          <SelectItem value="2">Part-time</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Student's enrollment type</FormDescription>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />

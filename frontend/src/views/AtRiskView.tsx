@@ -18,37 +18,52 @@ const getRiskBadgeColor = (riskCategory: string) => {
 };
 
 const studentsColumns: ColumnDefinition<Student>[] = [
-  { key: "id", title: "Student ID" },
-  { key: "age", title: "Age", sortable: true },
-  { key: "marital_status", title: "Marital Status", sortable: true },
+  { key: "age_at_enrollment", title: "Age", sortable: true },
+  { key: "gender", title: "Gender", sortable: true },
+  { key: "total_units_approved", title: "Units Approved", sortable: true },
+  { key: "total_units_evaluated", title: "Units Evaluated", sortable: true },
+  { key: "total_units_enrolled", title: "Units Enrolled", sortable: true },
+  { key: "average_grade", title: "Average Grade", sortable: true },
+  { key: "previous_qualification_grade", title: "Previous Grade", sortable: true },
   { 
-    key: "employed", 
-    title: "Employed", 
+    key: "tuition_fees_up_to_date", 
+    title: "Fees Up to Date", 
     sortable: true,
     render: (student) => (
-      <Badge className={student.employed 
-        ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800" 
-        : "bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
+      <Badge className={student.tuition_fees_up_to_date 
+        ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800" 
+        : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
       }>
-        {student.employed ? "Yes" : "No"}
+        {student.tuition_fees_up_to_date ? "Yes" : "No"}
       </Badge>
     )
   },
   { 
-    key: "scholarship", 
+    key: "scholarship_holder", 
     title: "Scholarship", 
     sortable: true,
     render: (student) => (
-      <Badge className={student.scholarship 
+      <Badge className={student.scholarship_holder 
         ? "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800" 
         : "bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
       }>
-        {student.scholarship ? "Yes" : "No"}
+        {student.scholarship_holder ? "Yes" : "No"}
       </Badge>
     )
   },
-  { key: "attendance_score", title: "Attendance", sortable: true },
-  { key: "engagement_score", title: "Engagement", sortable: true },
+  { 
+    key: "debtor", 
+    title: "Debtor", 
+    sortable: true,
+    render: (student) => (
+      <Badge className={student.debtor 
+        ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800" 
+        : "bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
+      }>
+        {student.debtor ? "Yes" : "No"}
+      </Badge>
+    )
+  },
   { 
     key: "risk_category", 
     title: "Risk Category", 
@@ -60,7 +75,7 @@ const studentsColumns: ColumnDefinition<Student>[] = [
       </Badge>
     )
   },
-  { key: "uploaded_by", title: "Uploaded By", searchable: true },
+  { key: "uploaded_by", title: "Uploaded By", searchable: true, sortable: true },
 ];
 
 interface StudentsResponse {
@@ -105,7 +120,7 @@ export default function AtRiskView() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm h-full overflow-auto">
+    <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm h-full overflow-hidden overflow-y-auto scrollbar-hide auto-scroll">
       <div className="bg-gradient-to-br from-[#2563eb] to-[#1e40af] rounded-xl p-4 relative">
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
         <h1 className="text-2xl font-semibold text-white dark:text-gray-100 mb-1">At Risk Students</h1>

@@ -82,7 +82,8 @@ export function MonthRangePicker({ value, onChange, variant = "default" }: Month
             <div key={year} className="mb-4 last:mb-0">
               <div className="text-xs font-semibold mb-2 text-gray-500 dark:text-gray-400">{year}</div>
               <div className="grid grid-cols-4 gap-2">
-                {months.map((month, index) => {
+                {[...months].reverse().map((month, reverseIndex) => {
+                  const index = 11 - reverseIndex;
                   const monthDate = new Date(year, index, 1);
                   const isSelected = 
                     (monthDate.getTime() === tempRange.from.getTime()) ||
