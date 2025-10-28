@@ -6,10 +6,11 @@ from datetime import datetime, timedelta
 import sys
 from pathlib import Path
 
-# Add the app directory to Python path
-sys.path.insert(0, str(Path(__file__).parent / "app"))
+# Add the backend directory to Python path
+backend_path = str(Path(__file__).parent.parent.parent)
+sys.path.insert(0, backend_path)
 
-from app.db import SessionLocal, test_connection
+from app.database.db import SessionLocal, test_connection
 from app.models import Student
 
 
@@ -17,24 +18,34 @@ def create_mock_students(count=50):
     """Create mock student data"""
     students = []
     uploaders = ["admin@university.edu", "registrar@university.edu", "system_import"]
+    genders = ["male", "female"]
 
     for i in range(count):
-        age = random.randint(18, 45)
+        age_at_enrollment = random.randint(18, 45)
+
+        # Generate academic units data
+        total_units_enrolled = round(random.uniform(30, 180), 1)
+        total_units_evaluated = round(random.uniform(20, total_units_enrolled), 1)
+        total_units_approved = round(random.uniform(0, total_units_evaluated), 1)
+
+        # Generate grades (0-20 scale or 0-100 scale depending on your system)
+        average_grade = round(random.uniform(8.0, 18.0), 2)
+        previous_qualification_grade = round(random.uniform(10.0, 20.0), 2)
 
         # Create realistic but simple data
         student_data = {
-            "age": age,
-            "marital_status": random.randint(0, 4),
-            "employed": random.choice([True, False]),
-            "scholarship": random.choice([True, False]),
-            "student_loan": random.choice([True, False]),
-            "attendance_score": round(random.uniform(0.3, 1.0), 3),
-            "study_mode": random.randint(1, 5),
-            "engagement_score": round(random.uniform(0.2, 1.0), 3),
-            "repeated_course": round(random.uniform(0, 3), 1),
-            "internet_access": random.choice(
+            "age_at_enrollment": age_at_enrollment,
+            "gender": random.choice(genders),
+            "total_units_approved": total_units_approved,
+            "average_grade": average_grade,
+            "total_units_evaluated": total_units_evaluated,
+            "total_units_enrolled": total_units_enrolled,
+            "previous_qualification_grade": previous_qualification_grade,
+            "tuition_fees_up_to_date": random.choice(
                 [True, True, True, False]
-            ),  # 75% have internet
+            ),  # 75% up to date
+            "scholarship_holder": random.choice([True, False]),
+            "debtor": random.choice([True, False, False, False]),  # 25% are debtors
             "uploaded_by": random.choice(uploaders),
         }
 
