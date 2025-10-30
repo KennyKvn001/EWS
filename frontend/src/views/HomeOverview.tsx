@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight } from "lucide-react";
 import TrendsChart, { type TrendData } from "@/components/myui/TrendsChart";
+import RiskDistributionChart, { type RiskDistributionData } from "@/components/myui/RiskDistributionChart";
 import { MonthRangePicker } from "@/components/ui/date-picker";
 
 // TODO: Replace with actual API call to backend endpoint: /api/students/trends?start=YYYY-MM&end=YYYY-MM
@@ -49,6 +50,13 @@ export default function HomeOverview() {
       return itemDate >= dateRange.from && itemDate <= dateRange.to;
     });
   }, [mockTrendData, dateRange]);
+
+  // Mock risk distribution data
+  const riskDistributionData: RiskDistributionData[] = [
+    { name: "High Risk", value: 10, color: "#dc2626" },
+    { name: "Medium Risk", value: 25, color: "#f97316" },
+    { name: "Low Risk", value: 65, color: "#16a34a" },
+  ];
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm h-full overflow-hidden overflow-y-auto scrollbar-hide auto-scroll">
       <div className="bg-gradient-to-br from-[#2563eb] to-[#1e40af] rounded-xl p-4 relative mb-4">
@@ -69,18 +77,18 @@ export default function HomeOverview() {
         {/* Total Students Card - Featured */}
         <Card className="bg-gradient-to-br from-[#2563eb] to-[#1e40af] border-none text-white relative overflow-hidden shadow-lg">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
+          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <div>
-              <CardTitle className="text-sm font-medium text-white/80 mb-1">Total Predictions</CardTitle>
+              <CardTitle className="text-sm font-medium text-white/80">Total Predictions</CardTitle>
             </div>
-            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <ArrowUpRight className="size-5 text-white" />
+            <button className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+              <ArrowUpRight className="size-4 text-white" />
             </button>
           </CardHeader>
-          <CardContent>
-            <div className="text-6xl font-bold mb-3">100</div>
-            <div className="flex items-center gap-1.5 text-sm">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <CardContent className="pb-4">
+            <div className="text-4xl font-bold mb-2">100</div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
               </svg>
               <span>Increased from last month</span>
@@ -90,14 +98,14 @@ export default function HomeOverview() {
 
         {/* At-Risk Students */}
         <Card className="shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
+          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">At-Risk Students</CardTitle>
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-              <ArrowUpRight className="size-5 text-gray-400" />
+            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+              <ArrowUpRight className="size-4 text-gray-400" />
             </button>
           </CardHeader>
-          <CardContent>
-            <div className="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2">10</div>
+          <CardContent className="pb-4">
+            <div className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">10</div>
             <div className="flex items-center gap-1 text-xs">
               <svg className="w-3 h-3 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
@@ -109,14 +117,14 @@ export default function HomeOverview() {
 
         {/* Success Rate */}
         <Card className="shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
+          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Success Rate</CardTitle>
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-              <ArrowUpRight className="size-5 text-gray-400" />
+            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+              <ArrowUpRight className="size-4 text-gray-400" />
             </button>
           </CardHeader>
-          <CardContent>
-            <div className="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2">12</div>
+          <CardContent className="pb-4">
+            <div className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">12</div>
             <div className="flex items-center gap-1 text-xs">
               <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
@@ -127,14 +135,18 @@ export default function HomeOverview() {
         </Card>
       </div>
 
-      {/* Trends Chart Section */}
+      {/* Charts Section - 2/3 and 1/3 Layout */}
       <div className="mt-6 w-full">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Trend Analysis</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Monitor risk level patterns over time</p>
-        </div>
-        <div className="w-full overflow-hidden">
-          <TrendsChart data={filteredTrendData} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Trends Chart - Takes 2/3 of space */}
+          <div className="lg:col-span-2">
+            <TrendsChart data={filteredTrendData} />
+          </div>
+          
+          {/* Risk Distribution Chart - Takes 1/3 of space */}
+          <div className="lg:col-span-1">
+            <RiskDistributionChart data={riskDistributionData} />
+          </div>
         </div>
       </div>
     </div>

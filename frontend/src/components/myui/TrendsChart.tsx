@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -21,94 +21,224 @@ interface TrendsChartProps {
   data: TrendData[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    name: string;
+    color: string;
+  }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+  if (active && payload && Array.isArray(payload) && payload.length) {
+    const total = payload.reduce((sum, entry) => sum + entry.value, 0);
+    
     return (
-      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center gap-2 text-xs">
-            <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: entry.color }}></div>
-            <span className="text-gray-600 dark:text-gray-400">{entry.name}:</span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">{entry.value}</span>
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
+        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+          {label}
+        </p>
+        <div className="space-y-2">
+          {payload.map((entry, index: number) => {
+            const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : "0";
+            return (
+              <div key={index} className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full shadow-sm" 
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    {entry.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                    {entry.value}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    ({percentage}%)
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Total</span>
+            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{total}</span>
           </div>
-        ))}
+        </div>
       </div>
     );
   }
   return null;
 };
 
-export default function TrendsChart({ data }: TrendsChartProps) {
+const CustomLegend = ({ payload, activeLines, onToggleLine }: {
+  payload?: { value: string; color: string; dataKey: string }[];
+  activeLines: Record<string, boolean>;
+  onToggleLine: (dataKey: string) => void;
+}) => {
+  if (!payload) return null;
+
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow w-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          At-Risk Student Trends
-        </CardTitle>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Track high, medium, and low risk student trends over time
-        </p>
-      </CardHeader>
-      <CardContent className="w-full overflow-x-auto">
-        <div className="min-w-[600px] w-full">
-          <ResponsiveContainer width="100%" height={350}>
-          <LineChart
-            data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+    <div className="flex flex-wrap items-center justify-end gap-3">
+      {payload.map((entry, index) => {
+        const isActive = activeLines[entry.dataKey];
+        return (
+          <button
+            key={index}
+            onClick={() => onToggleLine(entry.dataKey)}
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all hover:shadow-md ${
+              isActive 
+                ? 'bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700' 
+                : 'bg-gray-100 dark:bg-gray-800/50 opacity-50 hover:opacity-75'
+            }`}
           >
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              className="stroke-gray-200 dark:stroke-gray-700"
+            <div 
+              className={`w-3 h-3 rounded-full transition-all ${isActive ? 'shadow-sm' : ''}`}
+              style={{ backgroundColor: isActive ? entry.color : '#9ca3af' }}
             />
-            <XAxis
-              dataKey="month"
-              tick={{ fill: "currentColor" }}
-              className="text-gray-600 dark:text-gray-400"
-              style={{ fontSize: "12px" }}
-            />
-            <YAxis
-              tick={{ fill: "currentColor" }}
-              className="text-gray-600 dark:text-gray-400"
-              style={{ fontSize: "12px" }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend
-              wrapperStyle={{
-                paddingTop: "20px",
-                fontSize: "14px",
-              }}
-              iconType="circle"
-            />
-            <Line
-              type="monotone"
-              dataKey="high"
-              name="High Risk"
-              stroke="#dc2626"
-              strokeWidth={2.5}
-              dot={{ fill: "#dc2626", strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="medium"
-              name="Medium Risk"
-              stroke="#f59e0b"
-              strokeWidth={2.5}
-              dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="low"
-              name="Low Risk"
-              stroke="#16a34a"
-              strokeWidth={2.5}
-              dot={{ fill: "#16a34a", strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+            <span className={`text-xs font-medium ${
+              isActive 
+                ? 'text-gray-900 dark:text-gray-100' 
+                : 'text-gray-500 dark:text-gray-500'
+            }`}>
+              {entry.value}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+export default function TrendsChart({ data }: TrendsChartProps) {
+  const [activeLines, setActiveLines] = useState<Record<string, boolean>>({
+    high: true,
+    medium: true,
+    low: true,
+  });
+
+  const toggleLine = (dataKey: string) => {
+    setActiveLines(prev => ({
+      ...prev,
+      [dataKey]: !prev[dataKey],
+    }));
+  };
+
+  // Define legend payload
+  const legendPayload = [
+    { value: "High Risk", color: "#dc2626", dataKey: "high" },
+    { value: "Medium Risk", color: "#f97316", dataKey: "medium" },
+    { value: "Low Risk", color: "#16a34a", dataKey: "low" },
+  ];
+
+  return (
+    <Card className="shadow-sm hover:shadow-md transition-shadow w-full border-2 border-gray-100 dark:border-gray-800">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              Risk Trends Over Time
+            </CardTitle>
+            <CardDescription className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Monitor risk level patterns across months
+            </CardDescription>
+          </div>
+          <div className="flex-shrink-0">
+            <CustomLegend payload={legendPayload} activeLines={activeLines} onToggleLine={toggleLine} />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="w-full overflow-x-auto pt-2">
+        <div className="min-w-[600px] w-full">
+          <ResponsiveContainer width="100%" height={400}>
+            <AreaChart
+              data={data}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorHigh" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorMedium" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorLow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                className="stroke-gray-200 dark:stroke-gray-700"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: "currentColor", fontSize: 12 }}
+                className="text-gray-600 dark:text-gray-400"
+                tickLine={false}
+                axisLine={{ stroke: '#e5e7eb', strokeWidth: 1 }}
+              />
+              <YAxis
+                tick={{ fill: "currentColor", fontSize: 12 }}
+                className="text-gray-600 dark:text-gray-400"
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#9ca3af', strokeWidth: 1 }} />
+              
+              {activeLines.low && (
+                <Area
+                  type="monotone"
+                  dataKey="low"
+                  name="Low Risk"
+                  stroke="#16a34a"
+                  strokeWidth={3}
+                  fill="url(#colorLow)"
+                  dot={{ fill: "#16a34a", strokeWidth: 2, r: 4, className: "hover:r-6 transition-all" }}
+                  activeDot={{ r: 6, strokeWidth: 2, fill: "#16a34a" }}
+                  animationDuration={1000}
+                />
+              )}
+              
+              {activeLines.medium && (
+                <Area
+                  type="monotone"
+                  dataKey="medium"
+                  name="Medium Risk"
+                  stroke="#f97316"
+                  strokeWidth={3}
+                  fill="url(#colorMedium)"
+                  dot={{ fill: "#f97316", strokeWidth: 2, r: 4, className: "hover:r-6 transition-all" }}
+                  activeDot={{ r: 6, strokeWidth: 2, fill: "#f97316" }}
+                  animationDuration={1000}
+                />
+              )}
+              
+              {activeLines.high && (
+                <Area
+                  type="monotone"
+                  dataKey="high"
+                  name="High Risk"
+                  stroke="#dc2626"
+                  strokeWidth={3}
+                  fill="url(#colorHigh)"
+                  dot={{ fill: "#dc2626", strokeWidth: 2, r: 4, className: "hover:r-6 transition-all" }}
+                  activeDot={{ r: 6, strokeWidth: 2, fill: "#dc2626" }}
+                  animationDuration={1000}
+                />
+              )}
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>

@@ -7,13 +7,6 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Form,
   FormControl,
   FormDescription,
@@ -22,9 +15,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import PredictionResultDialog, {
+  type PredictionResult,
+} from "@/components/myui/PredictionResultDialog";
+import { Loader2 } from "lucide-react";
 
 // Validation schema
 const formSchema = z.object({
@@ -42,15 +37,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface SimulationResult {
-  risk_score: number;
-  risk_category: string;
-  recommendations: string[];
-}
-
 export default function SimulationForm() {
-  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const [isRerunning, setIsRerunning] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,22 +61,24 @@ export default function SimulationForm() {
   });
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
     console.log("Simulation submitted with data:", data);
+    setIsSubmitting(true);
     
     // Simulate API call - replace with actual API call later
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Mock simulation result
     const mockRiskScore = calculateMockRiskScore(data);
-    const mockResult: SimulationResult = {
-      risk_score: mockRiskScore,
-      risk_category: getRiskCategory(mockRiskScore),
-      recommendations: getRecommendations(data, mockRiskScore),
+    const riskLevel = getRiskLevel(mockRiskScore);
+    
+    const mockResult: PredictionResult = {
+      riskLevel: riskLevel,
+      riskScore: mockRiskScore / 100,
     };
     
-    setSimulationResult(mockResult);
-    setIsLoading(false);
+    setPredictionResult(mockResult);
+    setDialogOpen(true);
+    setIsSubmitting(false);
   };
 
   // Mock function to calculate risk score based on inputs
@@ -92,8 +86,8 @@ export default function SimulationForm() {
     let score = 50; // Base score
     
     // Academic performance impact
-    const gradePerformance = (data.average_grade / 20) * 100; // Convert to percentage
-    score -= (gradePerformance - 50) * 0.4; // Better grades = lower risk
+    const gradePerformance = (data.average_grade / 20) * 100;
+    score -= (gradePerformance - 50) * 0.4;
     
     // Units completion rate
     const completionRate = data.total_units_evaluated > 0 
@@ -114,66 +108,36 @@ export default function SimulationForm() {
     
     // Negative factors
     if (data.debtor) score += 15;
-    if (data.gender === "male") score += 3; // Slight statistical difference
+    if (data.gender === "male") score += 3;
     
     return Math.max(0, Math.min(100, score));
   };
 
-  const getRiskCategory = (score: number): string => {
-    if (score < 30) return "Low";
-    if (score < 60) return "Medium";
-    return "High";
+  const getRiskLevel = (score: number): "high" | "medium" | "low" => {
+    if (score < 30) return "low";
+    if (score < 60) return "medium";
+    return "high";
   };
 
-  const getRecommendations = (data: FormValues, riskScore: number): string[] => {
-    const recommendations: string[] = [];
-    
-    if (data.average_grade < 10) {
-      recommendations.push("Focus on improving academic grades - seek tutoring if needed");
-    }
-    
-    const completionRate = data.total_units_evaluated > 0 
-      ? (data.total_units_approved / data.total_units_evaluated) * 100 
-      : 100;
-    
-    if (completionRate < 70) {
-      recommendations.push("Work on completing more enrolled units successfully");
-    }
-    
-    if (data.debtor) {
-      recommendations.push("Address outstanding debts to reduce financial stress");
-    }
-    
-    if (!data.tuition_fees_up_to_date) {
-      recommendations.push("Ensure tuition fees are up to date to avoid administrative issues");
-    }
-    
-    if (!data.scholarship_holder && riskScore > 60) {
-      recommendations.push("Explore scholarship opportunities to reduce financial burden");
-    }
-    
-    if (data.age_at_enrollment < 19) {
-      recommendations.push("Consider academic support services for younger students");
-    }
-    
-    if (recommendations.length === 0) {
-      recommendations.push("Keep up the good work! Continue current study habits.");
-    }
-    
-    return recommendations;
+  const handleExplain = () => {
+    console.log("Explain prediction for:", predictionResult);
+    setIsExplaining(true);
+    // TODO: Implement explainability logic here
+    setTimeout(() => {
+      setIsExplaining(false);
+      alert("Explainability feature coming soon! This will show SHAP values and feature importance.");
+    }, 1500);
   };
 
-  const getRiskBadgeColor = (category: string) => {
-    switch (category) {
-      case "Low":
-        return "bg-green-500 hover:bg-green-600";
-      case "Medium":
-        return "bg-yellow-500 hover:bg-yellow-600";
-      case "High":
-        return "bg-red-500 hover:bg-red-600";
-      default:
-        return "bg-gray-500 hover:bg-gray-600";
-    }
+  const handleRerun = () => {
+    console.log("Re-running prediction");
+    setIsRerunning(true);
+    setDialogOpen(false);
+    // Reset and rerun
+    setTimeout(() => {
+      setIsRerunning(false);
+      form.handleSubmit(onSubmit)();
+    }, 500);
   };
 
   return (
@@ -339,38 +303,6 @@ export default function SimulationForm() {
                   )}
                 />
 
-                {/* Gender */}
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Gender</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="female" />
-                            </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Female</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="male" />
-                            </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Male</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 {/* Tuition Fees Up to Date Switch */}
                 <FormField
                   control={form.control}
@@ -421,6 +353,38 @@ export default function SimulationForm() {
                     </FormItem>
                   )}
                 />
+
+                {/* Gender */}
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Gender</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="female" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">Female</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="male" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">Male</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               {/* Submit Button */}
@@ -428,9 +392,16 @@ export default function SimulationForm() {
                 <Button 
                   type="submit" 
                   className="bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all"
-                  disabled={isLoading}
+                  disabled={isSubmitting || isRerunning}
                 >
-                  {isLoading ? "Simulating..." : "Run Prediction"}
+                  {isSubmitting || isRerunning ? (
+                    <>
+                      <span className="animate-spin mr-2"><Loader2 className="w-4 h-4 animate-spin" /></span>
+                      {isRerunning ? "Re-running..." : "Simulating..."}
+                    </>
+                  ) : (
+                    "Run Prediction"
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -438,67 +409,16 @@ export default function SimulationForm() {
         </form>
       </Form>
 
-      {/* Simulation Results */}
-      {simulationResult && (
-        <Card className="border-2">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center justify-between">
-              <span>Simulation Results</span>
-              <Badge className={getRiskBadgeColor(simulationResult.risk_category)}>
-                {simulationResult.risk_category} Risk
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Risk Score */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Risk Score</span>
-                <span className="text-2xl font-bold text-[#2563eb] dark:text-[#60a5fa]">
-                  {simulationResult.risk_score.toFixed(1)}%
-                </span>
-              </div>
-              <div className="w-full bg-secondary h-4 rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-500 ${
-                    simulationResult.risk_category === "Low"
-                      ? "bg-green-500"
-                      : simulationResult.risk_category === "Medium"
-                      ? "bg-yellow-500"
-                      : "bg-red-500"
-                  }`}
-                  style={{ width: `${simulationResult.risk_score}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Recommendations */}
-            <div>
-              <h3 className="text-base font-semibold mb-3">Recommendations</h3>
-              <div className="space-y-2">
-                {simulationResult.recommendations.map((rec, index) => (
-                  <Alert key={index}>
-                    <AlertDescription className="flex items-start">
-                      <span className="mr-2 mt-0.5">•</span>
-                      <span>{rec}</span>
-                    </AlertDescription>
-                  </Alert>
-                ))}
-              </div>
-            </div>
-
-            {/* Reset Button */}
-            <div className="flex justify-end pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setSimulationResult(null)}
-              >
-                Run New Prediction
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Prediction Result Dialog */}
+      <PredictionResultDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        result={predictionResult}
+        onExplain={handleExplain}
+        onRerun={handleRerun}
+        isExplainingLoading={isExplaining}
+        isRerunLoading={isRerunning}
+      />
     </div>
   );
 }
