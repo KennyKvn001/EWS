@@ -6,8 +6,9 @@ import logging
 
 from .scripts.prediction import predict
 from .database.db import get_db, create_tables, test_connection, get_db_health
-from .models import Student
-from .database.schema import PredicitonInput
+from .models import Student, PredictionLog
+from .database.schema import PredicitonInput, StudentCreate, StudentWithPrediction
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,11 +39,9 @@ async def startup_event():
     """Initialize database on application startup"""
     logger.info("Starting EWS API application...")
 
-    # Test database connection
     if test_connection():
         logger.info("Database connection successful")
 
-        # Create tables if they don't exist
         try:
             create_tables()
             logger.info("Database tables initialized")
@@ -89,17 +88,6 @@ async def test_db_connection():
         return {"status": "error", "message": "Database connection failed"}
 
 
-@app.get("/students/count")
-async def get_students_count(db: Session = Depends(get_db)):
-    """Get total count of students in the database"""
-    try:
-        count = db.query(Student).count()
-        return {"total_students": count}
-    except Exception as e:
-        logger.error(f"Error getting students count: {e}")
-        return {"error": "Failed to get students count", "details": str(e)}
-
-
 @app.get("/students")
 async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get students from the database with pagination"""
@@ -120,11 +108,104 @@ async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(ge
         logger.error(f"Error getting students: {e}")
         return {"error": "Failed to get students", "details": str(e)}
 
-
 @app.post("/predict")
 def predict_student(input_data: PredicitonInput):
-    """Predict student risk status with user-friendly input"""
-    return predict(input_data.model_dump())
+    """Predict student risk status with percentile grades and 0-20 scale units"""
+    try:
+        result = predict(input_data.model_dump())
+        return result
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        return {
+            "error": "Prediction failed",
+            "message": str(e),
+            "hint": "Check /predict/input-guide for correct input format"
+        }
+
+
+@app.post("/students/create-with-prediction", response_model=StudentWithPrediction)
+def create_student_with_prediction(student_data: StudentCreate, db: Session = Depends(get_db)):
+    """Create a new student record and automatically generate prediction"""
+    try:
+        # Get prediction first
+        prediction_result = predict(student_data.model_dump())
+        
+        if "error" in prediction_result:
+            return {
+                "error": "Prediction failed",
+                "message": prediction_result.get("message", "Unknown prediction error"),
+                "details": prediction_result
+            }
+        
+        gender_str = "male" if student_data.gender == 1 else "female"
+        
+        # Create student record with prediction results
+        new_student = Student(
+            age_at_enrollment=student_data.age_at_enrollment,
+            gender=gender_str,
+            total_units_approved=student_data.total_units_approved,
+            average_grade=student_data.average_grade,
+            total_units_evaluated=student_data.total_units_evaluated,
+            total_units_enrolled=student_data.total_units_enrolled,
+            previous_qualification_grade=student_data.previous_qualification_grade,
+            tuition_fees_up_to_date=bool(student_data.tuition_fees_up_to_date),
+            scholarship_holder=bool(student_data.scholarship_holder),
+            debtor=bool(student_data.debtor),
+            uploaded_by=student_data.uploaded_by,
+            # Prediction results
+            risk_score=prediction_result["probability"]["dropout"],
+            risk_category=prediction_result["risk_category"],
+            last_prediction_date=datetime.now()
+        )
+        
+        db.add(new_student)
+        db.commit()
+        db.refresh(new_student)
+        
+        # Also create a prediction log entry
+        prediction_log = PredictionLog(
+            student_id=new_student.id,
+            risk_score=prediction_result["probability"]["dropout"],
+            risk_category=prediction_result["risk_category"],
+            model_version="nn_b_model_v1",
+            created_by=student_data.uploaded_by
+        )
+        
+        db.add(prediction_log)
+        db.commit()
+        
+        # Prepare response
+        response_data = {
+            "id": str(new_student.id),
+            "age_at_enrollment": new_student.age_at_enrollment,
+            "gender": new_student.gender,
+            "total_units_approved": new_student.total_units_approved,
+            "average_grade": new_student.average_grade,
+            "total_units_evaluated": new_student.total_units_evaluated,
+            "total_units_enrolled": new_student.total_units_enrolled,
+            "previous_qualification_grade": new_student.previous_qualification_grade,
+            "tuition_fees_up_to_date": new_student.tuition_fees_up_to_date,
+            "scholarship_holder": new_student.scholarship_holder,
+            "debtor": new_student.debtor,
+            "uploaded_by": new_student.uploaded_by,
+            "created_at": new_student.created_at.isoformat(),
+            "risk_score": new_student.risk_score,
+            "risk_category": new_student.risk_category,
+            "prediction_label": prediction_result["label"],
+            "last_prediction_date": new_student.last_prediction_date.isoformat()
+        }
+        
+        logger.info(f"Created student {new_student.id} with prediction: {prediction_result['risk_category']}")
+        return response_data
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating student with prediction: {e}")
+        return {
+            "error": "Failed to create student",
+            "message": str(e),
+            "hint": "Check your input data and try again"
+        }
 
 
 @app.post("/upload/file")
