@@ -9,7 +9,7 @@ from pathlib import Path
 # Add the app directory to Python path
 sys.path.insert(0, str(Path(__file__).parent / "app"))
 
-from app.db import create_tables, drop_tables, test_connection, engine
+from .app.database.db import create_tables, drop_tables, test_connection, engine
 import logging
 
 logging.basicConfig(level=logging.INFO)

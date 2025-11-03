@@ -3,9 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import uvicorn
 import logging
+
+from .scripts.prediction import predict
 from .database.db import get_db, create_tables, test_connection, get_db_health
 from .models import Student
-from .database.schema import StudentCreate
+from .database.schema import PredicitonInput
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -119,25 +121,10 @@ async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(ge
         return {"error": "Failed to get students", "details": str(e)}
 
 
-@app.post("/prediction/input")
-async def prediction_input(student_data: StudentCreate, db: Session = Depends(get_db)):
-    """Endpoint for single student prediction input"""
-    try:
-        # Here you would add your ML prediction logic
-        # For now, returning a mock prediction
-        return {
-            "status": "success",
-            "message": "Prediction completed",
-            "student_data": student_data.dict(),
-            "prediction": {
-                "risk_score": 0.75,
-                "risk_category": "medium",
-                "confidence_score": 0.85,
-            },
-        }
-    except Exception as e:
-        logger.error(f"Error in prediction input: {e}")
-        return {"error": "Failed to process prediction", "details": str(e)}
+@app.post("/predict")
+def predict_student(input_data: PredicitonInput):
+    """Predict student risk status with user-friendly input"""
+    return predict(input_data.model_dump())
 
 
 @app.post("/upload/file")
