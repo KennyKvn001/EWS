@@ -27,7 +27,7 @@ import {
 } from "@/services/predictionApi";
 import type { PredictionFormData } from "@/types/prediction";
 
-// Validation schema - matches backend PredictionInput schema
+// Validation schema
 const formSchema = z.object({
   total_units_approved: z
     .number()
@@ -66,7 +66,7 @@ export default function PredictionForm() {
   const [predictionResult, setPredictionResult] =
     useState<PredictionResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isExplaining, setIsExplaining] = useState(false);
+
   const [isRerunning, setIsRerunning] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -86,7 +86,6 @@ export default function PredictionForm() {
     },
   });
 
-  // Clear API error when user starts interacting with the form
   const clearApiError = () => {
     if (apiError) {
       setApiError(null);
@@ -99,7 +98,6 @@ export default function PredictionForm() {
     setApiError(null);
 
     try {
-      // Convert form data to the expected API format
       const formData: PredictionFormData = {
         total_units_approved: data.total_units_approved,
         average_grade: data.average_grade,
@@ -113,17 +111,16 @@ export default function PredictionForm() {
         gender: data.gender,
       };
 
-      // Call the backend API
       const apiResponse = await predictionApi.predictWithExplanation(formData);
 
-      // Convert API response to the format expected by the dialog
       const enhancedResult =
         PredictionResultConverter.toEnhancedResult(apiResponse);
 
-      // Convert to the dialog's expected format (maintaining backward compatibility)
       const dialogResult: PredictionResult = {
         riskLevel: enhancedResult.riskLevel,
         riskScore: enhancedResult.riskScore,
+        predictionLabel: enhancedResult.predictionLabel,
+        explanation: enhancedResult.explanation,
       };
 
       setPredictionResult(dialogResult);
@@ -134,13 +131,11 @@ export default function PredictionForm() {
       if (error instanceof PredictionApiError) {
         setApiError(error.getUserMessage());
 
-        // Show specific field errors if available
         const apiErrorDetails = error.getApiError();
         if (
           apiErrorDetails.details &&
           typeof apiErrorDetails.details === "object"
         ) {
-          // Handle validation errors by setting form errors
           const validationErrors = apiErrorDetails.details as Record<
             string,
             string[]
@@ -164,15 +159,8 @@ export default function PredictionForm() {
 
   const handleExplain = () => {
     console.log("Explain prediction for:", predictionResult);
-    setIsExplaining(true);
-    // TODO: Implement explainability logic here
-    // This would typically call an API endpoint to get SHAP values or feature importance
-    setTimeout(() => {
-      setIsExplaining(false);
-      alert(
-        "Explainability feature coming soon! This will show SHAP values and feature importance."
-      );
-    }, 1500);
+    // Explainability is now handled automatically by the dialog when explanation data is available
+    // This function is kept for backward compatibility but may not be needed
   };
 
   const handleRerun = () => {
@@ -501,7 +489,6 @@ export default function PredictionForm() {
         result={predictionResult}
         onExplain={handleExplain}
         onRerun={handleRerun}
-        isExplainingLoading={isExplaining}
         isRerunLoading={isRerunning}
       />
     </Form>
