@@ -1,15 +1,9 @@
-#!/usr/bin/env python3
-"""
-Database management script for EWS Project ML API.
-This script provides utilities for database initialization, migration, and management.
-"""
 import sys
 from pathlib import Path
 
-# Add the app directory to Python path
 sys.path.insert(0, str(Path(__file__).parent / "app"))
 
-from .app.database.db import create_tables, drop_tables, test_connection, engine
+from app.database.db import create_tables, drop_tables, test_connection, engine
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -93,7 +87,7 @@ def main():
         print("Usage: python db_manager.py [command]")
         print("Commands:")
         print("  init    - Initialize database (create tables)")
-        print("  reset   - Reset database (drop and recreate tables)")
+        print("  reset   - Reset database (drop tables)")
         print("  check   - Check database status")
         print("  test    - Test database connection")
         return

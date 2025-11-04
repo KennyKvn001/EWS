@@ -46,7 +46,7 @@ def predict(user_input: dict) -> dict:
 
     if dropout_prob >= 0.75:
         risk_category = "high"
-    elif dropout_prob <= 0.50:
+    elif dropout_prob < 0.50:
         risk_category = "low"
     else:
         risk_category = "medium"
