@@ -1,12 +1,24 @@
 import joblib
 import pandas as pd
 from pathlib import Path
+from typing import Optional
 
 MODEL_DIR: Path = Path(__file__).parent.parent / "models"
 
 PREPROCESSOR_PATH: str = str(MODEL_DIR / "scaler.pkl")
 
-scaler = joblib.load(PREPROCESSOR_PATH)
+_scaler: Optional[object] = None
+
+
+def _get_scaler():
+    """Lazy load the scaler on first use"""
+    global _scaler
+    if _scaler is None:
+        try:
+            _scaler = joblib.load(PREPROCESSOR_PATH)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load scaler from {PREPROCESSOR_PATH}: {e}") from e
+    return _scaler
 
 NUM_FEATURES = [
     "Total_units_approved",
@@ -109,6 +121,7 @@ def preprocess_input(user_input: dict) -> pd.DataFrame:
 
     input_df = pd.DataFrame([processed_input])
 
+    scaler = _get_scaler()
     input_df[NUM_FEATURES] = scaler.transform(input_df[NUM_FEATURES])
 
     all_features = NUM_FEATURES + BINARY_FEATURES
