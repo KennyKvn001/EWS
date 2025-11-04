@@ -96,3 +96,23 @@ def get_db_health():
             }
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
+
+
+# Import models to register them with Base.metadata
+# This must be done after Base is defined to avoid circular imports
+def _import_models():
+    """Import all models to register them with Base.metadata"""
+    try:
+        from ..models import Student, PredictionLog, BatchUpload
+        logger.info("Models imported successfully (relative import)")
+    except ImportError:
+        # If running from db_manager.py, use absolute import
+        try:
+            from app.models import Student, PredictionLog, BatchUpload
+            logger.info("Models imported successfully (absolute import)")
+        except ImportError as e:
+            logger.error(f"Could not import models: {e}")
+            raise
+
+# Import models when this module is loaded
+_import_models()
