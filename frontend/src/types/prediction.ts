@@ -11,6 +11,77 @@ export interface PredictionLog {
   created_by?: string;
 }
 
+// Enhanced types for prediction with explainability - matches backend response exactly
+export interface FeatureImpact {
+  feature: string;
+  original_value: number | string | boolean;
+  preprocessed_value: number;
+  dropout_impact: number;
+  graduate_impact: number;
+  interpretation: string;
+}
+
+export interface ExplanationSummary {
+  most_influential_feature: string;
+  strongest_dropout_factor: string;
+  strongest_protective_factor: string;
+}
+
+export interface PredictionWithExplanationResponse {
+  prediction: {
+    prediction: number;
+    label: string;
+    probability: {
+      dropout: number;
+      graduate: number;
+    };
+    risk_category: string;
+  };
+  explanation: {
+    feature_impacts: FeatureImpact[];
+    summary: ExplanationSummary;
+  };
+}
+
+// Form data structure that matches the frontend form
+export interface PredictionFormData {
+  total_units_approved: number;
+  average_grade: number;
+  age_at_enrollment: number;
+  total_units_evaluated: number;
+  total_units_enrolled: number;
+  previous_qualification_grade: number;
+  tuition_fees_up_to_date: boolean;
+  scholarship_holder: boolean;
+  debtor: boolean;
+  gender: "male" | "female";
+}
+
+// Backend API input format (after transformation)
+export interface PredictionInput {
+  total_units_approved: number;
+  average_grade: number;
+  age_at_enrollment: number;
+  total_units_evaluated: number;
+  total_units_enrolled: number;
+  previous_qualification_grade: number;
+  tuition_fees_up_to_date: number; // 0 or 1
+  scholarship_holder: number; // 0 or 1
+  debtor: number; // 0 or 1
+  gender: number; // 0 for female, 1 for male
+}
+
+// Enhanced prediction result for UI components
+export interface EnhancedPredictionResult {
+  riskLevel: "high" | "medium" | "low";
+  riskScore: number;
+  predictionLabel: string;
+  explanation?: {
+    topFeatures: FeatureImpact[];
+    summary: ExplanationSummary;
+  };
+}
+
 export interface PredictionCreate {
   student_id: string;
   risk_score: number;
