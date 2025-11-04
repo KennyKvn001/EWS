@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import uvicorn
 import logging
+import numpy as np
 
 from .scripts.prediction import predict
+from .scripts.explainability import explain_instance
 from .database.db import get_db, create_tables, test_connection, get_db_health
 from .models import Student, PredictionLog
 from .database.schema import PredicitonInput, StudentCreate, StudentWithPrediction
@@ -68,26 +70,6 @@ async def root():
     }
 
 
-@app.get("/health")
-async def health_check():
-    """Enhanced health check endpoint with database status"""
-    db_health = get_db_health()
-    return {
-        "status": "healthy" if db_health["status"] == "healthy" else "degraded",
-        "service": "EWSS API",
-        "database": db_health,
-    }
-
-
-@app.get("/db/test")
-async def test_db_connection():
-    """Test database connection endpoint"""
-    if test_connection():
-        return {"status": "success", "message": "Database connection successful"}
-    else:
-        return {"status": "error", "message": "Database connection failed"}
-
-
 @app.get("/students")
 async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get students from the database with pagination"""
@@ -122,6 +104,67 @@ def predict_student(input_data: PredicitonInput):
             "hint": "Check /predict/input-guide for correct input format"
         }
 
+@app.post("/predict_with_xai")
+def predict_with_xai(input_data: PredicitonInput):
+    try:
+        pred = predict(input_data.model_dump())
+
+        input_dict = input_data.model_dump()
+        x_input = np.array([list(input_dict.values())])
+
+        shap_values = explain_instance(x_input)
+        
+        # Feature names in the same order as the input data
+        feature_names = [
+            "Total Units Approved",
+            "Average Grade (%)",
+            "Age at Enrollment", 
+            "Total Units Evaluated",
+            "Total Units Enrolled",
+            "Previous Qualification Grade (%)",
+            "Tuition Fees Up to Date",
+            "Scholarship Holder",
+            "Debtor",
+            "Gender"
+        ]
+        
+        # Create readable explanation
+        feature_explanations = []
+        for i, feature_name in enumerate(feature_names):
+            dropout_impact = shap_values[0][i][0]  # Impact on dropout probability
+            graduate_impact = shap_values[0][i][1]  # Impact on graduate probability
+            
+            feature_explanations.append({
+                "feature": feature_name,
+                "value": list(input_dict.values())[i],
+                "dropout_impact": round(dropout_impact, 4),
+                "graduate_impact": round(graduate_impact, 4),
+                "interpretation": "Increases dropout risk" if dropout_impact > 0 else "Decreases dropout risk" if dropout_impact < 0 else "Neutral impact"
+            })
+        
+        # Sort by absolute impact (most influential features first)
+        feature_explanations.sort(key=lambda x: abs(x["dropout_impact"]), reverse=True)
+
+        response = {
+            "prediction": pred,
+            "explanation": {
+                "feature_impacts": feature_explanations,
+                "summary": {
+                    "most_influential_feature": feature_explanations[0]["feature"],
+                    "strongest_dropout_factor": max(feature_explanations, key=lambda x: x["dropout_impact"])["feature"] if any(f["dropout_impact"] > 0 for f in feature_explanations) else "None",
+                    "strongest_protective_factor": min(feature_explanations, key=lambda x: x["dropout_impact"])["feature"] if any(f["dropout_impact"] < 0 for f in feature_explanations) else "None"
+                }
+            }
+        }
+        return response
+    
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        return {
+            "error": "Prediction failed",
+            "message": str(e),
+            "hint": "Check /predict/input-guide for correct input format"
+        }
 
 @app.post("/students/create-with-prediction", response_model=StudentWithPrediction)
 def create_student_with_prediction(student_data: StudentCreate, db: Session = Depends(get_db)):
@@ -231,6 +274,24 @@ async def file_upload(file: UploadFile = File(...)):
         logger.error(f"Error in file upload: {e}")
         return {"error": "Failed to upload file", "details": str(e)}
 
+@app.get("/health")
+async def health_check():
+    """Enhanced health check endpoint with database status"""
+    db_health = get_db_health()
+    return {
+        "status": "healthy" if db_health["status"] == "healthy" else "degraded",
+        "service": "EWSS API",
+        "database": db_health,
+    }
+
+
+@app.get("/db/test")
+async def test_db_connection():
+    """Test database connection endpoint"""
+    if test_connection():
+        return {"status": "success", "message": "Database connection successful"}
+    else:
+        return {"status": "error", "message": "Database connection failed"}
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
