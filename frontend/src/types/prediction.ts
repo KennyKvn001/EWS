@@ -11,7 +11,6 @@ export interface PredictionLog {
   created_by?: string;
 }
 
-// Enhanced types for prediction with explainability - matches backend response exactly
 export interface FeatureImpact {
   feature: string;
   original_value: number | string | boolean;
@@ -43,7 +42,6 @@ export interface PredictionWithExplanationResponse {
   };
 }
 
-// Form data structure that matches the frontend form
 export interface PredictionFormData {
   total_units_approved: number;
   average_grade: number;
@@ -57,7 +55,6 @@ export interface PredictionFormData {
   gender: "male" | "female";
 }
 
-// Backend API input format (after transformation)
 export interface PredictionInput {
   total_units_approved: number;
   average_grade: number;
@@ -65,13 +62,12 @@ export interface PredictionInput {
   total_units_evaluated: number;
   total_units_enrolled: number;
   previous_qualification_grade: number;
-  tuition_fees_up_to_date: number; // 0 or 1
-  scholarship_holder: number; // 0 or 1
-  debtor: number; // 0 or 1
-  gender: number; // 0 for female, 1 for male
+  tuition_fees_up_to_date: number;
+  scholarship_holder: number;
+  debtor: number;
+  gender: number;
 }
 
-// Enhanced prediction result for UI components
 export interface EnhancedPredictionResult {
   riskLevel: "high" | "medium" | "low";
   riskScore: number;
@@ -92,9 +88,7 @@ export interface PredictionCreate {
 }
 
 export interface PredictionResponse {
-  /** The prediction result */
   prediction: PredictionLog;
-  /** Additional metadata about the prediction */
   metadata?: {
     model_accuracy?: number;
     feature_importance?: Record<string, number>;
@@ -133,7 +127,6 @@ export interface UserFriendlyPredictionInput {
 }
 
 export interface PredictionInputMapping {
-  /** Maps user-friendly field names to backend schema field names */
   Total_Units_Approved: 'total_units_approved';
   Average_Grade: 'average_grade';
   Age_At_Enrollment: 'age_at_enrollment';
@@ -159,9 +152,6 @@ export const PREDICTION_FIELD_MAPPING: PredictionInputMapping = {
   Gender: 'gender',
 };
 
-/**
- * Converts user-friendly prediction input to backend schema format
- */
 export function convertToBackendFormat(
   userInput: UserFriendlyPredictionInput,
   uploadedBy: string
@@ -181,9 +171,6 @@ export function convertToBackendFormat(
   };
 }
 
-/**
- * Converts backend format to user-friendly prediction input
- */
 export function convertFromBackendFormat(
   backendData: import('./student').Student | import('./student').StudentCreate
 ): UserFriendlyPredictionInput {

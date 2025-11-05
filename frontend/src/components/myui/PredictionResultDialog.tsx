@@ -97,7 +97,6 @@ const riskConfig = {
   },
 };
 
-// Helper function to format feature names for display
 function formatFeatureName(feature: string): string {
   return feature
     .split("_")
@@ -105,7 +104,6 @@ function formatFeatureName(feature: string): string {
     .join(" ");
 }
 
-// Helper function to get impact icon and color
 function getImpactIndicator(impact: number) {
   if (impact > 0) {
     return {
@@ -131,7 +129,6 @@ function getImpactIndicator(impact: number) {
   }
 }
 
-// Feature Impact Item Component
 function FeatureImpactItem({ feature }: { feature: FeatureImpact }) {
   const indicator = getImpactIndicator(feature.dropout_impact);
   const Icon = indicator.icon;
@@ -162,7 +159,6 @@ function FeatureImpactItem({ feature }: { feature: FeatureImpact }) {
   );
 }
 
-// Explainability Summary Component
 function ExplainabilitySummary({
   summary,
   isExpanded,
@@ -253,10 +249,9 @@ export default function PredictionResultDialog({
 
   const config = riskConfig[result.riskLevel];
   const percentage = Math.round(result.riskScore * 100);
-  const circumference = 2 * Math.PI * 45; // radius = 45
+  const circumference = 2 * Math.PI * 45;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  // Check if explanation data is available
   const hasExplanation =
     result.explanation && result.explanation.topFeatures.length > 0;
 

@@ -40,7 +40,6 @@ export interface BatchCreate {
   students: StudentCreate[];
 }
 
-// Enums and constants for better type safety
 export const Gender = {
   MALE: 'male',
   FEMALE: 'female',

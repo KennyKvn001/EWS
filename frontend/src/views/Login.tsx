@@ -55,11 +55,6 @@ export default function Login() {
             signUpUrl="/sign-up"
           />
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-6">
-          Secure authentication powered by Clerk
-        </p>
       </div>
     </div>
   )
