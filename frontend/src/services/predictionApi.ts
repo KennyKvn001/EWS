@@ -132,80 +132,281 @@ export class FormDataConverter {
   }
 }
 
+export interface RetryOptions {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffMultiplier: number;
+}
+
 export class PredictionApiService {
   private baseUrl: string;
+  private defaultTimeout: number;
+  private retryOptions: RetryOptions;
 
-  constructor(baseUrl: string = "http://localhost:8000") {
+  constructor(
+    baseUrl: string = "http://localhost:8000",
+    timeout: number = 30000,
+    retryOptions: RetryOptions = {
+      maxRetries: 3,
+      baseDelay: 1000,
+      maxDelay: 10000,
+      backoffMultiplier: 2,
+    }
+  ) {
     this.baseUrl = baseUrl;
+    this.defaultTimeout = timeout;
+    this.retryOptions = retryOptions;
+  }
+
+  private async delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private calculateRetryDelay(attempt: number): number {
+    const delay =
+      this.retryOptions.baseDelay *
+      Math.pow(this.retryOptions.backoffMultiplier, attempt);
+    return Math.min(delay, this.retryOptions.maxDelay);
+  }
+
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeout: number
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new PredictionApiError(
+          "Request timed out. Please try again.",
+          {
+            error: "Timeout Error",
+            message: `Request timed out after ${timeout}ms`,
+            hint: "The server may be experiencing high load. Please try again in a moment.",
+          },
+          ErrorType.TIMEOUT_ERROR,
+          true
+        );
+      }
+      throw error;
+    }
   }
 
   async predictWithExplanation(
-    formData: PredictionFormData
+    formData: PredictionFormData,
+    options?: { timeout?: number; retries?: number }
   ): Promise<PredictionWithExplanationResponse> {
-    try {
-      const backendInput = FormDataConverter.toBackendFormat(formData);
+    const timeout = options?.timeout || this.defaultTimeout;
+    const maxRetries =
+      options?.retries !== undefined
+        ? options.retries
+        : this.retryOptions.maxRetries;
 
-      const response = await fetch(`${this.baseUrl}/predict_with_xai`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(backendInput),
-      });
+    let lastError: PredictionApiError | null = null;
 
-      if (!response.ok) {
-        let errorData: ApiErrorResponse;
-        try {
-          errorData = await response.json();
-        } catch {
-          errorData = {
-            error: "HTTP Error",
-            message: `Request failed with status ${response.status}`,
-          };
-        }
-        throw new PredictionApiError(errorData.message, errorData);
-      }
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const backendInput = FormDataConverter.toBackendFormat(formData);
 
-      const data = await response.json();
-
-      if (!FormDataConverter.validateApiResponse(data)) {
-        throw new PredictionApiError("Invalid response format from server", {
-          error: "Invalid Response",
-          message: "The server returned an unexpected response format",
-          details: { receivedData: data },
-        });
-      }
-
-      return data;
-    } catch (error) {
-      if (error instanceof PredictionApiError) {
-        throw error;
-      }
-
-      if (error instanceof TypeError && error.message.includes("fetch")) {
-        throw new PredictionApiError(
-          "Unable to connect to the prediction service.",
+        const response = await this.fetchWithTimeout(
+          `${this.baseUrl}/predict_with_xai`,
           {
-            error: "Network Error",
-            message: "Failed to connect to the backend service",
-            hint: "Make sure the backend server is running",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(backendInput),
+          },
+          timeout
+        );
+
+        if (!response.ok) {
+          let errorData: ApiErrorResponse;
+          let errorType: ErrorType;
+          let isRetryable = false;
+
+          try {
+            errorData = await response.json();
+          } catch {
+            errorData = {
+              error: "HTTP Error",
+              message: `Request failed with status ${response.status}`,
+            };
           }
+
+          // Determine error type and retry behavior based on status code
+          if (response.status >= 400 && response.status < 500) {
+            errorType =
+              response.status === 422
+                ? ErrorType.VALIDATION_ERROR
+                : ErrorType.SERVER_ERROR;
+            isRetryable = response.status === 429; // Only retry rate limiting
+          } else if (response.status >= 500) {
+            errorType = ErrorType.SERVER_ERROR;
+            isRetryable = true; // Server errors are retryable
+          } else {
+            errorType = ErrorType.UNKNOWN_ERROR;
+          }
+
+          const apiError = new PredictionApiError(
+            this.getErrorMessage(errorData, response.status),
+            errorData,
+            errorType,
+            isRetryable
+          );
+
+          if (!isRetryable || attempt === maxRetries) {
+            throw apiError;
+          }
+
+          lastError = apiError;
+          await this.delay(this.calculateRetryDelay(attempt));
+          continue;
+        }
+
+        const data = await response.json();
+
+        if (!FormDataConverter.validateApiResponse(data)) {
+          throw new PredictionApiError(
+            "Invalid response format from server",
+            {
+              error: "Invalid Response",
+              message: "The server returned an unexpected response format",
+              details: { receivedData: data },
+            },
+            ErrorType.PARSE_ERROR,
+            false
+          );
+        }
+
+        return data;
+      } catch (error) {
+        if (error instanceof PredictionApiError) {
+          if (!error.canRetry() || attempt === maxRetries) {
+            throw error;
+          }
+          lastError = error;
+          await this.delay(this.calculateRetryDelay(attempt));
+          continue;
+        }
+
+        if (error instanceof TypeError && error.message.includes("fetch")) {
+          const networkError = new PredictionApiError(
+            "Unable to connect to the prediction service.",
+            {
+              error: "Network Error",
+              message: "Failed to connect to the backend service",
+              hint: "Make sure the backend server is running and your internet connection is stable",
+            },
+            ErrorType.NETWORK_ERROR,
+            true
+          );
+
+          if (attempt === maxRetries) {
+            throw networkError;
+          }
+
+          lastError = networkError;
+          await this.delay(this.calculateRetryDelay(attempt));
+          continue;
+        }
+
+        throw new PredictionApiError(
+          "An unexpected error occurred",
+          {
+            error: "Unknown Error",
+            message: error instanceof Error ? error.message : "Unknown error",
+          },
+          ErrorType.UNKNOWN_ERROR,
+          false
         );
       }
+    }
 
-      throw new PredictionApiError("An unexpected error occurred", {
-        error: "Unknown Error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+    // This should never be reached, but just in case
+    throw (
+      lastError ||
+      new PredictionApiError(
+        "Maximum retries exceeded",
+        {
+          error: "Retry Limit Exceeded",
+          message: "Failed to complete request after maximum retries",
+        },
+        ErrorType.UNKNOWN_ERROR,
+        false
+      )
+    );
+  }
+
+  private getErrorMessage(
+    errorData: ApiErrorResponse,
+    statusCode: number
+  ): string {
+    switch (statusCode) {
+      case 400:
+        return "Invalid request data. Please check your input and try again.";
+      case 422:
+        return "Validation failed. Please check the highlighted fields.";
+      case 429:
+        return "Too many requests. Please wait a moment and try again.";
+      case 500:
+        return "Server error occurred. Please try again in a moment.";
+      case 503:
+        return "Service temporarily unavailable. Please try again later.";
+      default:
+        return errorData.message || `Request failed with status ${statusCode}`;
+    }
+  }
+
+  // Health check method for testing connectivity
+  async healthCheck(): Promise<boolean> {
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/health`,
+        { method: "GET" },
+        5000
+      );
+      return response.ok;
+    } catch {
+      return false;
     }
   }
 }
 
+export enum ErrorType {
+  NETWORK_ERROR = "NETWORK_ERROR",
+  VALIDATION_ERROR = "VALIDATION_ERROR",
+  SERVER_ERROR = "SERVER_ERROR",
+  TIMEOUT_ERROR = "TIMEOUT_ERROR",
+  PARSE_ERROR = "PARSE_ERROR",
+  UNKNOWN_ERROR = "UNKNOWN_ERROR",
+}
+
 export class PredictionApiError extends Error {
   public readonly apiError: ApiErrorResponse;
+  public readonly errorType: ErrorType;
+  public readonly isRetryable: boolean;
 
-  constructor(message: string, apiError: ApiErrorResponse) {
+  constructor(
+    message: string,
+    apiError: ApiErrorResponse,
+    errorType: ErrorType = ErrorType.UNKNOWN_ERROR,
+    isRetryable: boolean = false
+  ) {
     super(message);
     this.name = "PredictionApiError";
     this.apiError = apiError;
+    this.errorType = errorType;
+    this.isRetryable = isRetryable;
   }
 
   getUserMessage(): string {
@@ -214,6 +415,14 @@ export class PredictionApiError extends Error {
 
   getApiError(): ApiErrorResponse {
     return this.apiError;
+  }
+
+  getErrorType(): ErrorType {
+    return this.errorType;
+  }
+
+  canRetry(): boolean {
+    return this.isRetryable;
   }
 }
 

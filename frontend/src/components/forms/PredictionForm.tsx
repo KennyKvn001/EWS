@@ -27,7 +27,6 @@ import {
 } from "@/services/predictionApi";
 import type { PredictionFormData } from "@/types/prediction";
 
-// Validation schema
 const formSchema = z.object({
   total_units_approved: z
     .number()
@@ -93,7 +92,6 @@ export default function PredictionForm() {
   };
 
   const onSubmit = async (data: FormValues) => {
-    console.log("Form submitted with data:", data);
     setIsSubmitting(true);
     setApiError(null);
 
@@ -126,12 +124,15 @@ export default function PredictionForm() {
       setPredictionResult(dialogResult);
       setDialogOpen(true);
     } catch (error) {
-      console.error("Prediction API error:", error);
-
       if (error instanceof PredictionApiError) {
-        setApiError(error.getUserMessage());
-
         const apiErrorDetails = error.getApiError();
+
+        let errorMessage = error.getUserMessage();
+        if (apiErrorDetails.hint) {
+          errorMessage += ` ${apiErrorDetails.hint}`;
+        }
+        setApiError(errorMessage);
+
         if (
           apiErrorDetails.details &&
           typeof apiErrorDetails.details === "object"
@@ -157,19 +158,11 @@ export default function PredictionForm() {
     }
   };
 
-  const handleExplain = () => {
-    console.log("Explain prediction for:", predictionResult);
-    // Explainability is now handled automatically by the dialog when explanation data is available
-    // This function is kept for backward compatibility but may not be needed
-  };
-
   const handleRerun = () => {
-    console.log("Re-running prediction");
     setIsRerunning(true);
     setDialogOpen(false);
-    setApiError(null); // Clear any previous errors
+    setApiError(null);
 
-    // Reset form and rerun
     setTimeout(() => {
       setIsRerunning(false);
       form.handleSubmit(onSubmit)();
@@ -180,7 +173,6 @@ export default function PredictionForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
         <div className="bg-card rounded-xl border shadow-sm p-6">
-          {/* Error Alert */}
           {apiError && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />
@@ -487,7 +479,6 @@ export default function PredictionForm() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         result={predictionResult}
-        onExplain={handleExplain}
         onRerun={handleRerun}
         isRerunLoading={isRerunning}
       />
