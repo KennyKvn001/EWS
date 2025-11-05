@@ -91,7 +91,7 @@ export default function AppSidebar({ collapsed }: AppSidebarProps) {
               key={item.title}
               to={item.url}
               className={({ isActive }) =>
-                `flex items-center ${collapsed ? 'justify-center' : 'justify-between'} gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                `flex items-center ${collapsed ? 'justify-center' : 'justify-between'} gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "bg-[#1e40af] text-white shadow-lg"
                     : "text-white/80 hover:bg-white/10 hover:text-white"
@@ -117,7 +117,7 @@ export default function AppSidebar({ collapsed }: AppSidebarProps) {
               <button
                 key={item.title}
                 onClick={item.onClick}
-                className={`w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-white/80 hover:bg-white/10 hover:text-white`}
+                className={`w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-white/80 hover:bg-white/10 hover:text-white`}
                 title={collapsed ? item.title : undefined}
               >
                 <item.icon className="size-5 shrink-0" />

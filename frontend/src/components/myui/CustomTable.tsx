@@ -403,7 +403,7 @@ export default function CustomTable<T>({
               <select
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="rounded border border-input bg-background px-3 py-1 text-sm text-foreground"
+                className="rounded border border-input bg-background px-3 py-1 text-sm text-foreground cursor-pointer"
               >
                 {(pagination.pageSizeOptions || [5, 10, 20, 50]).map((size) => (
                   <option key={size} value={size}>{size}</option>

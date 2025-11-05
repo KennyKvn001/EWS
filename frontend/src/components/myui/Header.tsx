@@ -14,7 +14,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       <div className="flex items-center">
         <button 
           onClick={onToggleSidebar}
-          className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+          className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors cursor-pointer"
           title="Toggle Sidebar"
         >
           <PanelLeft className="size-5 text-gray-600 dark:text-gray-400" />
@@ -23,7 +23,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
       {/* Right side controls */}
       <div className="flex items-center gap-2">
-        <button className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+        <button className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors cursor-pointer">
           <Bell className="size-5 text-gray-600 dark:text-gray-400" />
         </button>
         <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>

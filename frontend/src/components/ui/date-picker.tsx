@@ -96,7 +96,7 @@ export function MonthRangePicker({ value, onChange, variant = "default" }: Month
                       key={month}
                       onClick={() => handleMonthSelect(year, index)}
                       className={`
-                        px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200
+                        px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 cursor-pointer
                         ${isSelected 
                           ? "bg-gradient-to-br from-[#2563eb] to-[#1e40af] text-white shadow-md scale-105" 
                           : isInRange

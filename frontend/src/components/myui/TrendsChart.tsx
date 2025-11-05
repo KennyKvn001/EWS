@@ -93,7 +93,7 @@ const CustomLegend = ({ payload, activeLines, onToggleLine }: {
           <button
             key={index}
             onClick={() => onToggleLine(entry.dataKey)}
-            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all hover:shadow-md ${
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all hover:shadow-md cursor-pointer ${
               isActive 
                 ? 'bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700' 
                 : 'bg-gray-100 dark:bg-gray-800/50 opacity-50 hover:opacity-75'

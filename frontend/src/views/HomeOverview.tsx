@@ -81,7 +81,7 @@ export default function HomeOverview() {
             <div>
               <CardTitle className="text-sm font-medium text-white/80">Total Predictions</CardTitle>
             </div>
-            <button className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+            <button className="p-1.5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
               <ArrowUpRight className="size-4 text-white" />
             </button>
           </CardHeader>
@@ -100,7 +100,7 @@ export default function HomeOverview() {
         <Card className="shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">At-Risk Students</CardTitle>
-            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer">
               <ArrowUpRight className="size-4 text-gray-400" />
             </button>
           </CardHeader>
@@ -119,7 +119,7 @@ export default function HomeOverview() {
         <Card className="shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Success Rate</CardTitle>
-            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer">
               <ArrowUpRight className="size-4 text-gray-400" />
             </button>
           </CardHeader>
@@ -135,15 +135,12 @@ export default function HomeOverview() {
         </Card>
       </div>
 
-      {/* Charts Section - 2/3 and 1/3 Layout */}
+      {/* Charts Section */}
       <div className="mt-6 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Trends Chart - Takes 2/3 of space */}
           <div className="lg:col-span-2">
             <TrendsChart data={filteredTrendData} />
           </div>
-          
-          {/* Risk Distribution Chart - Takes 1/3 of space */}
           <div className="lg:col-span-1">
             <RiskDistributionChart data={riskDistributionData} />
           </div>
