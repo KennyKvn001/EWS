@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 import uvicorn
 import logging
 import numpy as np
+import os
+from dotenv import load_dotenv
 
 from .scripts.prediction import predict
 from .scripts.explainability import predict_with_explanation
@@ -12,11 +14,11 @@ from .models import Student, PredictionLog
 from .database.schema import PredicitonInput, StudentCreate, StudentWithPrediction
 from datetime import datetime
 
-# Configure logging
+load_dotenv()
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
 app = FastAPI(
     title="EWSS ML API",
     description="Early Warning and Support System for Student Risk Prediction",
@@ -25,14 +27,40 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+if cors_origins_env:
+    allowed_origins = [origin.strip() for origin in cors_origins_env.split(",")]
+else:
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://ews-puce.vercel.app",
+    ]
+
+allow_vercel_previews = os.getenv("ALLOW_VERCEL_PREVIEWS", "true").lower() == "true"
+vercel_regex = None
+if allow_vercel_previews:
+    vercel_regex = r"https://.*\.vercel\.app"
+
+logger.info(f"CORS allowed origins: {allowed_origins}")
+if vercel_regex:
+    logger.info(f"CORS allowed origin regex: {vercel_regex}")
+
 # Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_kwargs = {
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+
+if vercel_regex:
+    cors_kwargs["allow_origin_regex"] = vercel_regex
+    # Still include specific origins
+    cors_kwargs["allow_origins"] = allowed_origins
+else:
+    cors_kwargs["allow_origins"] = allowed_origins
+
+app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 
 # Application startup event
@@ -173,8 +201,6 @@ def create_student_with_prediction(
 
         db.add(prediction_log)
         db.commit()
-
-        # Prepare response
         response_data = {
             "id": str(new_student.id),
             "age_at_enrollment": new_student.age_at_enrollment,
