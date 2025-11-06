@@ -8,14 +8,12 @@ export type {
   Student,
   StudentCreate,
   BatchCreate,
-  MaritalStatusType,
-  StudyModeType,
+  GenderType,
   RiskCategoryType,
 } from './student';
 
 export {
-  MaritalStatus,
-  StudyMode,
+  Gender,
   RiskCategory,
 } from './student';
 
@@ -28,6 +26,12 @@ export type {
   BatchPredictionResponse,
   UserFriendlyPredictionInput,
   PredictionInputMapping,
+  FeatureImpact,
+  ExplanationSummary,
+  PredictionWithExplanationResponse,
+  PredictionFormData,
+  PredictionInput,
+  EnhancedPredictionResult,
 } from './prediction';
 
 export {

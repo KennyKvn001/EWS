@@ -11,6 +11,73 @@ export interface PredictionLog {
   created_by?: string;
 }
 
+export interface FeatureImpact {
+  feature: string;
+  original_value: number | string | boolean;
+  preprocessed_value: number;
+  dropout_impact: number;
+  graduate_impact: number;
+  interpretation: string;
+}
+
+export interface ExplanationSummary {
+  most_influential_feature: string;
+  strongest_dropout_factor: string;
+  strongest_protective_factor: string;
+}
+
+export interface PredictionWithExplanationResponse {
+  prediction: {
+    prediction: number;
+    label: string;
+    probability: {
+      dropout: number;
+      graduate: number;
+    };
+    risk_category: string;
+  };
+  explanation: {
+    feature_impacts: FeatureImpact[];
+    summary: ExplanationSummary;
+  };
+}
+
+export interface PredictionFormData {
+  total_units_approved: number;
+  average_grade: number;
+  age_at_enrollment: number;
+  total_units_evaluated: number;
+  total_units_enrolled: number;
+  previous_qualification_grade: number;
+  tuition_fees_up_to_date: boolean;
+  scholarship_holder: boolean;
+  debtor: boolean;
+  gender: "male" | "female";
+}
+
+export interface PredictionInput {
+  total_units_approved: number;
+  average_grade: number;
+  age_at_enrollment: number;
+  total_units_evaluated: number;
+  total_units_enrolled: number;
+  previous_qualification_grade: number;
+  tuition_fees_up_to_date: number;
+  scholarship_holder: number;
+  debtor: number;
+  gender: number;
+}
+
+export interface EnhancedPredictionResult {
+  riskLevel: "high" | "medium" | "low";
+  riskScore: number;
+  predictionLabel: string;
+  explanation?: {
+    topFeatures: FeatureImpact[];
+    summary: ExplanationSummary;
+  };
+}
+
 export interface PredictionCreate {
   student_id: string;
   risk_score: number;
@@ -21,9 +88,7 @@ export interface PredictionCreate {
 }
 
 export interface PredictionResponse {
-  /** The prediction result */
   prediction: PredictionLog;
-  /** Additional metadata about the prediction */
   metadata?: {
     model_accuracy?: number;
     feature_importance?: Record<string, number>;
@@ -62,7 +127,6 @@ export interface UserFriendlyPredictionInput {
 }
 
 export interface PredictionInputMapping {
-  /** Maps user-friendly field names to backend schema field names */
   Total_Units_Approved: 'total_units_approved';
   Average_Grade: 'average_grade';
   Age_At_Enrollment: 'age_at_enrollment';
@@ -88,9 +152,6 @@ export const PREDICTION_FIELD_MAPPING: PredictionInputMapping = {
   Gender: 'gender',
 };
 
-/**
- * Converts user-friendly prediction input to backend schema format
- */
 export function convertToBackendFormat(
   userInput: UserFriendlyPredictionInput,
   uploadedBy: string
@@ -110,9 +171,6 @@ export function convertToBackendFormat(
   };
 }
 
-/**
- * Converts backend format to user-friendly prediction input
- */
 export function convertFromBackendFormat(
   backendData: import('./student').Student | import('./student').StudentCreate
 ): UserFriendlyPredictionInput {

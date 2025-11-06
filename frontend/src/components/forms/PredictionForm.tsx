@@ -15,19 +15,43 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import PredictionResultDialog, {
   type PredictionResult,
 } from "@/components/myui/PredictionResultDialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import {
+  predictionApi,
+  PredictionApiError,
+  PredictionResultConverter,
+} from "@/services/predictionApi";
+import type { PredictionFormData } from "@/types/prediction";
 
-// Validation schema
 const formSchema = z.object({
-  total_units_approved: z.number().min(0, "Cannot be negative"),
-  average_grade: z.number().min(0, "Grade must be at least 0").max(20, "Grade must be at most 20"),
-  age_at_enrollment: z.number().min(15, "Age must be at least 15").max(100, "Age must be less than 100"),
-  total_units_evaluated: z.number().min(0, "Cannot be negative"),
-  total_units_enrolled: z.number().min(0, "Cannot be negative"),
-  previous_qualification_grade: z.number().min(0, "Grade must be at least 0").max(200, "Grade must be at most 200"),
+  total_units_approved: z
+    .number()
+    .min(0, "Cannot be negative")
+    .max(20, "Cannot exceed 20 units"),
+  average_grade: z
+    .number()
+    .min(0, "Grade must be at least 0%")
+    .max(100, "Grade must be at most 100%"),
+  age_at_enrollment: z
+    .number()
+    .min(16, "Age must be at least 16")
+    .max(65, "Age must be at most 65"),
+  total_units_evaluated: z
+    .number()
+    .min(0, "Cannot be negative")
+    .max(20, "Cannot exceed 20 units"),
+  total_units_enrolled: z
+    .number()
+    .min(0, "Cannot be negative")
+    .max(20, "Cannot exceed 20 units"),
+  previous_qualification_grade: z
+    .number()
+    .min(0, "Grade must be at least 0%")
+    .max(100, "Grade must be at most 100%"),
   tuition_fees_up_to_date: z.boolean(),
   scholarship_holder: z.boolean(),
   debtor: z.boolean(),
@@ -38,10 +62,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function PredictionForm() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
+  const [predictionResult, setPredictionResult] =
+    useState<PredictionResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isExplaining, setIsExplaining] = useState(false);
+
   const [isRerunning, setIsRerunning] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -56,45 +82,87 @@ export default function PredictionForm() {
       scholarship_holder: false,
       debtor: false,
       gender: undefined,
-
     },
   });
 
-  const onSubmit = async (data: FormValues) => {
-    console.log("Form submitted with data:", data);
-    setIsSubmitting(true);
-
-    // TODO: Replace with actual API call to backend
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Mock prediction result - replace with actual API response
-    const mockResult: PredictionResult = {
-      riskLevel: data.average_grade > 15 ? "low" : data.average_grade > 10 ? "medium" : "high",
-      riskScore: data.average_grade > 15 ? 0.15 : data.average_grade > 10 ? 0.45 : 0.85,
-    };
-
-    setPredictionResult(mockResult);
-    setDialogOpen(true);
-    setIsSubmitting(false);
+  const clearApiError = () => {
+    if (apiError) {
+      setApiError(null);
+    }
   };
 
-  const handleExplain = () => {
-    console.log("Explain prediction for:", predictionResult);
-    setIsExplaining(true);
-    // TODO: Implement explainability logic here
-    // This would typically call an API endpoint to get SHAP values or feature importance
-    setTimeout(() => {
-      setIsExplaining(false);
-      alert("Explainability feature coming soon! This will show SHAP values and feature importance.");
-    }, 1500);
+  const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
+    setApiError(null);
+
+    try {
+      const formData: PredictionFormData = {
+        total_units_approved: data.total_units_approved,
+        average_grade: data.average_grade,
+        age_at_enrollment: data.age_at_enrollment,
+        total_units_evaluated: data.total_units_evaluated,
+        total_units_enrolled: data.total_units_enrolled,
+        previous_qualification_grade: data.previous_qualification_grade,
+        tuition_fees_up_to_date: data.tuition_fees_up_to_date,
+        scholarship_holder: data.scholarship_holder,
+        debtor: data.debtor,
+        gender: data.gender,
+      };
+
+      const apiResponse = await predictionApi.predictWithExplanation(formData);
+
+      const enhancedResult =
+        PredictionResultConverter.toEnhancedResult(apiResponse);
+
+      const dialogResult: PredictionResult = {
+        riskLevel: enhancedResult.riskLevel,
+        riskScore: enhancedResult.riskScore,
+        predictionLabel: enhancedResult.predictionLabel,
+        explanation: enhancedResult.explanation,
+      };
+
+      setPredictionResult(dialogResult);
+      setDialogOpen(true);
+    } catch (error) {
+      if (error instanceof PredictionApiError) {
+        const apiErrorDetails = error.getApiError();
+
+        let errorMessage = error.getUserMessage();
+        if (apiErrorDetails.hint) {
+          errorMessage += ` ${apiErrorDetails.hint}`;
+        }
+        setApiError(errorMessage);
+
+        if (
+          apiErrorDetails.details &&
+          typeof apiErrorDetails.details === "object"
+        ) {
+          const validationErrors = apiErrorDetails.details as Record<
+            string,
+            string[]
+          >;
+          Object.entries(validationErrors).forEach(([field, messages]) => {
+            if (field in data && messages.length > 0) {
+              form.setError(field as keyof FormValues, {
+                type: "server",
+                message: messages[0],
+              });
+            }
+          });
+        }
+      } else {
+        setApiError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRerun = () => {
-    console.log("Re-running prediction");
     setIsRerunning(true);
     setDialogOpen(false);
-    // Reset form and rerun
+    setApiError(null);
+
     setTimeout(() => {
       setIsRerunning(false);
       form.handleSubmit(onSubmit)();
@@ -105,6 +173,13 @@ export default function PredictionForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
         <div className="bg-card rounded-xl border shadow-sm p-6">
+          {apiError && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{apiError}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             {/* Total Units Approved */}
             <FormField
@@ -116,12 +191,17 @@ export default function PredictionForm() {
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter total units approved"
+                      placeholder="Enter total units approved (0-20)"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || undefined);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
-                  <FormDescription>Total number of units approved</FormDescription>
+                  <FormDescription>
+                    Total number of units approved (0-20 scale)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -138,13 +218,16 @@ export default function PredictionForm() {
                     <Input
                       type="number"
                       step="0.01"
-                      placeholder="Enter average grade (0-20)"
+                      placeholder="Enter average grade (0-100%)"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || undefined);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
-                    Student's average grade (0-20 scale)
+                    Student's average grade as percentage (0-100%)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -161,12 +244,17 @@ export default function PredictionForm() {
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter age"
+                      placeholder="Enter age (16-65)"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || undefined);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
-                  <FormDescription>Student's age at enrollment (15-100 years)</FormDescription>
+                  <FormDescription>
+                    Student's age at enrollment (16-65 years)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -182,13 +270,16 @@ export default function PredictionForm() {
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter total units evaluated"
+                      placeholder="Enter total units evaluated (0-20)"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || undefined);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
-                    Total number of units evaluated
+                    Total number of units evaluated (0-20 scale)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -205,13 +296,16 @@ export default function PredictionForm() {
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter total units enrolled"
+                      placeholder="Enter total units enrolled (0-20)"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || undefined);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
-                    Total number of units enrolled
+                    Total number of units enrolled (0-20 scale)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -229,13 +323,16 @@ export default function PredictionForm() {
                     <Input
                       type="number"
                       step="0.01"
-                      placeholder="Enter previous qualification grade"
+                      placeholder="Enter previous qualification grade (0-100%)"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || undefined);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
-                    Grade from previous qualification (0-200)
+                    Grade from previous qualification as percentage (0-100%)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -251,7 +348,10 @@ export default function PredictionForm() {
                   <FormControl>
                     <Checkbox
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -273,7 +373,10 @@ export default function PredictionForm() {
                   <FormControl>
                     <Checkbox
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -295,7 +398,10 @@ export default function PredictionForm() {
                   <FormControl>
                     <Checkbox
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        clearApiError();
+                      }}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -317,7 +423,10 @@ export default function PredictionForm() {
                   <FormLabel>Gender</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        clearApiError();
+                      }}
                       value={field.value}
                       className="flex flex-col space-y-1 pt-2"
                     >
@@ -354,8 +463,8 @@ export default function PredictionForm() {
             >
               {isSubmitting || isRerunning ? (
                 <>
-                  <span className="animate-spin mr-2"><Loader2 className="w-4 h-4 animate-spin" /></span>
-                  {isRerunning ? "Re-running..." : "Processing..."}
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  {isRerunning ? "Re-running..." : "Processing Prediction..."}
                 </>
               ) : (
                 "Submit Prediction"
@@ -370,12 +479,9 @@ export default function PredictionForm() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         result={predictionResult}
-        onExplain={handleExplain}
         onRerun={handleRerun}
-        isExplainingLoading={isExplaining}
         isRerunLoading={isRerunning}
       />
     </Form>
   );
 }
-

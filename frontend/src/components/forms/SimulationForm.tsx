@@ -16,19 +16,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import PredictionResultDialog, {
   type PredictionResult,
 } from "@/components/myui/PredictionResultDialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import {
+  predictionApi,
+  PredictionApiError,
+  PredictionResultConverter,
+} from "@/services/predictionApi";
+import type { PredictionFormData } from "@/types/prediction";
 
-// Validation schema
+// Validation schema - matches backend requirements (0-100 for grades)
 const formSchema = z.object({
-  total_units_approved: z.number().min(0, "Cannot be negative"),
-  average_grade: z.number().min(0, "Grade must be at least 0").max(20, "Grade must be at most 20"),
-  age_at_enrollment: z.number().min(15, "Age must be at least 15").max(100, "Age must be less than 100"),
-  total_units_evaluated: z.number().min(0, "Cannot be negative"),
-  total_units_enrolled: z.number().min(0, "Cannot be negative"),
-  previous_qualification_grade: z.number().min(0, "Grade must be at least 0").max(200, "Grade must be at most 200"),
+  total_units_approved: z.number().min(0, "Cannot be negative").max(20, "Cannot exceed 20 units"),
+  average_grade: z.number().min(0, "Grade must be at least 0").max(100, "Grade must be at most 100"),
+  age_at_enrollment: z.number().min(16, "Age must be at least 16").max(65, "Age must be at most 65"),
+  total_units_evaluated: z.number().min(0, "Cannot be negative").max(20, "Cannot exceed 20 units"),
+  total_units_enrolled: z.number().min(0, "Cannot be negative").max(20, "Cannot exceed 20 units"),
+  previous_qualification_grade: z.number().min(0, "Grade must be at least 0").max(100, "Grade must be at most 100"),
   tuition_fees_up_to_date: z.boolean(),
   scholarship_holder: z.boolean(),
   debtor: z.boolean(),
@@ -43,16 +50,17 @@ export default function SimulationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExplaining, setIsExplaining] = useState(false);
   const [isRerunning, setIsRerunning] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       total_units_approved: 20,
-      average_grade: 12,
+      average_grade: 60,
       age_at_enrollment: 20,
       total_units_evaluated: 20,
-      total_units_enrolled: 25,
-      previous_qualification_grade: 120,
+      total_units_enrolled: 20,
+      previous_qualification_grade: 60,
       tuition_fees_up_to_date: true,
       scholarship_holder: false,
       debtor: false,
@@ -60,80 +68,89 @@ export default function SimulationForm() {
     },
   });
 
+  const clearApiError = () => {
+    if (apiError) {
+      setApiError(null);
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
-    console.log("Simulation submitted with data:", data);
     setIsSubmitting(true);
-    
-    // Simulate API call - replace with actual API call later
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock simulation result
-    const mockRiskScore = calculateMockRiskScore(data);
-    const riskLevel = getRiskLevel(mockRiskScore);
-    
-    const mockResult: PredictionResult = {
-      riskLevel: riskLevel,
-      riskScore: mockRiskScore / 100,
-    };
-    
-    setPredictionResult(mockResult);
-    setDialogOpen(true);
-    setIsSubmitting(false);
-  };
+    setApiError(null);
 
-  // Mock function to calculate risk score based on inputs
-  const calculateMockRiskScore = (data: FormValues): number => {
-    let score = 50; // Base score
-    
-    // Academic performance impact
-    const gradePerformance = (data.average_grade / 20) * 100;
-    score -= (gradePerformance - 50) * 0.4;
-    
-    // Units completion rate
-    const completionRate = data.total_units_evaluated > 0 
-      ? (data.total_units_approved / data.total_units_evaluated) * 100 
-      : 50;
-    score -= (completionRate - 50) * 0.3;
-    
-    // Age impact (younger students slightly higher risk)
-    if (data.age_at_enrollment < 20) score += 5;
-    
-    // Previous qualification impact
-    const prevQualPerformance = (data.previous_qualification_grade / 200) * 100;
-    score -= (prevQualPerformance - 50) * 0.2;
-    
-    // Positive factors
-    if (data.scholarship_holder) score -= 10;
-    if (data.tuition_fees_up_to_date) score -= 8;
-    
-    // Negative factors
-    if (data.debtor) score += 15;
-    if (data.gender === "male") score += 3;
-    
-    return Math.max(0, Math.min(100, score));
-  };
+    try {
+      const formData: PredictionFormData = {
+        total_units_approved: data.total_units_approved,
+        average_grade: data.average_grade,
+        age_at_enrollment: data.age_at_enrollment,
+        total_units_evaluated: data.total_units_evaluated,
+        total_units_enrolled: data.total_units_enrolled,
+        previous_qualification_grade: data.previous_qualification_grade,
+        tuition_fees_up_to_date: data.tuition_fees_up_to_date,
+        scholarship_holder: data.scholarship_holder,
+        debtor: data.debtor,
+        gender: data.gender,
+      };
 
-  const getRiskLevel = (score: number): "high" | "medium" | "low" => {
-    if (score < 30) return "low";
-    if (score < 60) return "medium";
-    return "high";
+      const apiResponse = await predictionApi.predictWithExplanation(formData);
+
+      const enhancedResult =
+        PredictionResultConverter.toEnhancedResult(apiResponse);
+
+      const dialogResult: PredictionResult = {
+        riskLevel: enhancedResult.riskLevel,
+        riskScore: enhancedResult.riskScore,
+        predictionLabel: enhancedResult.predictionLabel,
+        explanation: enhancedResult.explanation,
+      };
+
+      setPredictionResult(dialogResult);
+      setDialogOpen(true);
+    } catch (error) {
+      if (error instanceof PredictionApiError) {
+        const apiErrorDetails = error.getApiError();
+
+        let errorMessage = error.getUserMessage();
+        if (apiErrorDetails.hint) {
+          errorMessage += ` ${apiErrorDetails.hint}`;
+        }
+        setApiError(errorMessage);
+
+        if (
+          apiErrorDetails.details &&
+          typeof apiErrorDetails.details === "object"
+        ) {
+          const validationErrors = apiErrorDetails.details as Record<
+            string,
+            string[]
+          >;
+          Object.entries(validationErrors).forEach(([field, messages]) => {
+            if (field in data && messages.length > 0) {
+              form.setError(field as keyof FormValues, {
+                type: "server",
+                message: messages[0],
+              });
+            }
+          });
+        }
+      } else {
+        setApiError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleExplain = () => {
-    console.log("Explain prediction for:", predictionResult);
-    setIsExplaining(true);
-    // TODO: Implement explainability logic here
-    setTimeout(() => {
-      setIsExplaining(false);
-      alert("Explainability feature coming soon! This will show SHAP values and feature importance.");
-    }, 1500);
+    setIsExplaining(false);
   };
 
   const handleRerun = () => {
-    console.log("Re-running prediction");
     setIsRerunning(true);
     setDialogOpen(false);
-    // Reset and rerun
+    setApiError(null);
+    clearApiError();
+
     setTimeout(() => {
       setIsRerunning(false);
       form.handleSubmit(onSubmit)();
@@ -146,6 +163,12 @@ export default function SimulationForm() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card>
             <CardContent>
+              {apiError && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{apiError}</AlertDescription>
+                </Alert>
+              )}
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Total Units Approved Slider */}
                 <FormField
@@ -160,14 +183,17 @@ export default function SimulationForm() {
                       <FormControl>
                         <Slider
                           min={0}
-                          max={60}
+                          max={20}
                           step={1}
                           value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
+                          onValueChange={(vals) => {
+                            field.onChange(vals[0]);
+                            clearApiError();
+                          }}
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Number of units approved (0-60)</FormDescription>
+                      <FormDescription>Number of units approved (0-20)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -181,19 +207,22 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Average Grade</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value.toFixed(1)}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value.toFixed(1)}%</span>
                       </div>
                       <FormControl>
                         <Slider
                           min={0}
-                          max={20}
+                          max={100}
                           step={0.1}
                           value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
+                          onValueChange={(vals) => {
+                            field.onChange(vals[0]);
+                            clearApiError();
+                          }}
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Student's average grade (0-20 scale)</FormDescription>
+                      <FormDescription>Student's average grade as percentage (0-100%)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -211,15 +240,18 @@ export default function SimulationForm() {
                       </div>
                       <FormControl>
                         <Slider
-                          min={15}
-                          max={100}
+                          min={16}
+                          max={65}
                           step={1}
                           value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
+                          onValueChange={(vals) => {
+                            field.onChange(vals[0]);
+                            clearApiError();
+                          }}
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Student's age at enrollment (15-100 years)</FormDescription>
+                      <FormDescription>Student's age at enrollment (16-65 years)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -238,14 +270,17 @@ export default function SimulationForm() {
                       <FormControl>
                         <Slider
                           min={0}
-                          max={60}
+                          max={20}
                           step={1}
                           value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
+                          onValueChange={(vals) => {
+                            field.onChange(vals[0]);
+                            clearApiError();
+                          }}
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Number of units evaluated (0-60)</FormDescription>
+                      <FormDescription>Number of units evaluated (0-20)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -264,14 +299,17 @@ export default function SimulationForm() {
                       <FormControl>
                         <Slider
                           min={0}
-                          max={60}
+                          max={20}
                           step={1}
                           value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
+                          onValueChange={(vals) => {
+                            field.onChange(vals[0]);
+                            clearApiError();
+                          }}
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Number of units enrolled (0-60)</FormDescription>
+                      <FormDescription>Number of units enrolled (0-20)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -285,19 +323,22 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Previous Qualification (Grade)</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value.toFixed(1)}%</span>
                       </div>
                       <FormControl>
                         <Slider
                           min={0}
-                          max={200}
-                          step={1}
+                          max={100}
+                          step={0.1}
                           value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
+                          onValueChange={(vals) => {
+                            field.onChange(vals[0]);
+                            clearApiError();
+                          }}
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Grade from previous qualification (0-200)</FormDescription>
+                      <FormDescription>Grade from previous qualification as percentage (0-100%)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -314,7 +355,13 @@ export default function SimulationForm() {
                         <FormDescription>Are tuition fees up to date?</FormDescription>
                       </div>
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch 
+                          checked={field.value} 
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            clearApiError();
+                          }} 
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -331,7 +378,13 @@ export default function SimulationForm() {
                         <FormDescription>Does the student have a scholarship?</FormDescription>
                       </div>
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch 
+                          checked={field.value} 
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            clearApiError();
+                          }} 
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -348,7 +401,13 @@ export default function SimulationForm() {
                         <FormDescription>Is the student a debtor?</FormDescription>
                       </div>
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch 
+                          checked={field.value} 
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            clearApiError();
+                          }} 
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -363,7 +422,10 @@ export default function SimulationForm() {
                       <FormLabel>Gender</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearApiError();
+                          }}
                           value={field.value}
                           className="flex flex-col space-y-1"
                         >

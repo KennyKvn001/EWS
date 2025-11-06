@@ -27,7 +27,7 @@ function RadioGroupItem({
     <RadioGroupPrimitive.Item
       data-slot="radio-group-item"
       className={cn(
-        "aspect-square size-4 shrink-0 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 transition-colors outline-none",
+        "aspect-square size-4 shrink-0 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 transition-colors outline-none cursor-pointer",
         "focus-visible:ring-2 focus-visible:ring-[#2563eb]/20 focus-visible:border-[#2563eb]",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className
