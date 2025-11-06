@@ -82,7 +82,7 @@ def preprocess_input(user_input: dict) -> pd.DataFrame:
                 "total_units_approved", user_input.get("Total_units_approved", 0)
             ),
             max_user_range=20.0,
-            max_dataset_range=43.0,
+            max_dataset_range=23.0,
         ),
         "Average_grade": percentage_to_dataset_range(
             user_input.get("average_grade", user_input.get("Average_grade", 50)),
@@ -97,14 +97,14 @@ def preprocess_input(user_input: dict) -> pd.DataFrame:
                 "total_units_evaluated", user_input.get("Total_units_evaluated", 0)
             ),
             max_user_range=20.0,
-            max_dataset_range=45.0,
+            max_dataset_range=33.0,
         ),
         "Total_units_enrolled": units_to_dataset_range(
             user_input.get(
                 "total_units_enrolled", user_input.get("Total_units_enrolled", 0)
             ),
             max_user_range=20.0,
-            max_dataset_range=26.0,
+            max_dataset_range=23.0,
         ),
         "Previous_qualification_(grade)": percentage_to_dataset_range(
             user_input.get(
