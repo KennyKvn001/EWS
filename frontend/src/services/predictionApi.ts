@@ -460,7 +460,7 @@ export class PredictionResultConverter {
       riskScore: prediction.probability.dropout,
       predictionLabel: prediction.label,
       explanation: {
-        topFeatures: explanation.feature_impacts.slice(0, 5),
+        topFeatures: explanation.feature_impacts, // Pass all features, component will handle display
         summary: explanation.summary,
       },
     };
