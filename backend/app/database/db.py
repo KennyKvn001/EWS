@@ -13,6 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+DB_SSLMODE = os.getenv("DB_SSLMODE", "prefer")
 
 logger.info("Using PostgreSQL database")
 engine = create_engine(
@@ -23,7 +24,7 @@ engine = create_engine(
     max_overflow=10,
     connect_args={
         "connect_timeout": 5,
-        "sslmode": "require",
+        "sslmode": DB_SSLMODE,
     },
     echo=False,
 )
