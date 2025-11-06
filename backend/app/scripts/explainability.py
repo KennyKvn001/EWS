@@ -2,35 +2,171 @@ import shap
 import joblib
 import numpy as np
 from pathlib import Path
-from tensorflow import keras
-from .prediction import predict
-from .preprocess import preprocess_input
+from typing import Optional, Tuple
+from .prediction import predict, _get_model
+from .preprocess import preprocess_input, NUM_FEATURES, BINARY_FEATURES
 
 MODEL_DIR: Path = Path(__file__).parent.parent / "models"
 
-MODEL_PATH = str(MODEL_DIR / "nn_b_model.pkl")
 BACKGROUND_PATH = str(MODEL_DIR / "background_data.pkl")
 
-_model = None
-_explainer = None
+FEATURE_NAMES = [
+    "Total Units Approved",
+    "Average Grade",
+    "Age at Enrollment",
+    "Total Units Evaluated",
+    "Total Units Enrolled",
+    "Previous Qualification Grade",
+    "Tuition Fees Up to Date",
+    "Scholarship Holder",
+    "Debtor",
+    "Gender",
+]
+
+_explainer: Optional[shap.KernelExplainer] = None
+_background_data: Optional[np.ndarray] = None
+
+
+def _ensure_2d(array: np.ndarray) -> np.ndarray:
+    """Ensure array is 2D by reshaping if needed."""
+    if array.ndim == 1:
+        return array.reshape(1, -1)
+    return array
+
 
 def _load_resources():
-    global _model, _explainer
-
-    if _model is None:
-        _model = joblib.load(MODEL_PATH)
+    """Lazy load the explainer and background data on first use."""
+    global _explainer, _background_data
 
     if _explainer is None:
-        background = joblib.load(BACKGROUND_PATH)
-        _explainer = shap.KernelExplainer(_model.predict, background)
+        try:
+            model = _get_model()
+            if _background_data is None:
+                _background_data = joblib.load(BACKGROUND_PATH)
+                _background_data = _ensure_2d(_background_data)
+                max_samples = min(100, len(_background_data))
+                _background_data = _background_data[:max_samples]
+            _explainer = shap.KernelExplainer(model.predict, _background_data)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load explainer resources: {e}") from e
+
 
 def explain_instance(input_data: np.ndarray):
     """
-    Compute SHAP values for a single input instance
+    Compute SHAP values for a single input instance.
+
+    Args:
+        input_data: Input array (1D or 2D)
+
+    Returns:
+        SHAP values (list or array)
     """
     _load_resources()
-    shap_values = _explainer.shap_values(input_data)
-    return shap_values
+    input_data = _ensure_2d(input_data)
+
+    try:
+        shap_values = _explainer.shap_values(input_data, nsamples=100)
+        return shap_values
+    except Exception as e:
+        raise RuntimeError(f"SHAP computation failed: {e}") from e
+
+
+def _normalize_shap_values(shap_values) -> Tuple[np.ndarray, bool]:
+    """
+    Normalize SHAP values to a consistent 3D format: (samples, features, classes).
+
+    Returns:
+        Tuple of (normalized_shap_array, has_two_classes)
+    """
+    if isinstance(shap_values, list) and len(shap_values) == 2:
+        shap_dropout = _ensure_2d(np.array(shap_values[0]))
+        shap_graduate = _ensure_2d(np.array(shap_values[1]))
+        shap_array = np.stack([shap_dropout, shap_graduate], axis=2)
+        return shap_array, True
+    else:
+        shap_array = np.array(
+            shap_values[0] if isinstance(shap_values, list) else shap_values
+        )
+        if shap_array.ndim == 2:
+            shap_array = shap_array.reshape(1, *shap_array.shape)
+        elif shap_array.ndim == 1:
+            shap_array = shap_array.reshape(1, -1, 1)
+        return shap_array, False
+
+
+def _extract_impacts(
+    shap_array: np.ndarray, has_two_classes: bool, feature_idx: int
+) -> Tuple[float, float]:
+    """
+    Extract dropout and graduate impacts from normalized SHAP array.
+
+    Returns:
+        Tuple of (dropout_impact, graduate_impact)
+    """
+    if shap_array.ndim == 3:
+        dropout_impact = float(shap_array[0, feature_idx, 0])
+        graduate_impact = (
+            float(shap_array[0, feature_idx, 1]) if has_two_classes else 0.0
+        )
+    elif shap_array.ndim == 2:
+        if shap_array.shape[1] > 1 and has_two_classes:
+            dropout_impact = float(shap_array[feature_idx, 0])
+            graduate_impact = float(shap_array[feature_idx, 1])
+        else:
+            dropout_impact = float(shap_array[0, feature_idx])
+            graduate_impact = 0.0
+    else:
+        dropout_impact = float(shap_array[feature_idx])
+        graduate_impact = 0.0
+
+    return dropout_impact, graduate_impact
+
+
+def _get_interpretation(dropout_impact: float) -> str:
+    """Get human-readable interpretation of dropout impact."""
+    if dropout_impact > 0:
+        return "Increases dropout risk"
+    elif dropout_impact < 0:
+        return "Decreases dropout risk"
+    else:
+        return "Neutral impact"
+
+
+def _compute_summary(feature_explanations: list) -> dict:
+    """
+    Compute summary statistics in a single pass over feature_explanations.
+    """
+    if not feature_explanations:
+        return {
+            "most_influential_feature": "Unknown",
+            "strongest_dropout_factor": "None",
+            "strongest_protective_factor": "None",
+        }
+
+    strongest_dropout = None
+    strongest_protective = None
+    max_dropout_impact = float("-inf")
+    min_dropout_impact = float("inf")
+
+    for feature in feature_explanations:
+        impact = feature["dropout_impact"]
+        if impact > max_dropout_impact:
+            max_dropout_impact = impact
+            strongest_dropout = feature["feature"]
+        if impact < min_dropout_impact:
+            min_dropout_impact = impact
+            strongest_protective = feature["feature"]
+
+    return {
+        "most_influential_feature": feature_explanations[0]["feature"],
+        "strongest_dropout_factor": (
+            strongest_dropout if max_dropout_impact > 0 else "None"
+        ),
+        "strongest_protective_factor": (
+            strongest_protective if min_dropout_impact < 0 else "None"
+        ),
+    }
+
 
 def predict_with_explanation(user_input: dict) -> dict:
     """
@@ -39,52 +175,69 @@ def predict_with_explanation(user_input: dict) -> dict:
     pred = predict(user_input)
 
     x_input_df = preprocess_input(user_input)
-    x_input = x_input_df.values
+    x_input = _ensure_2d(x_input_df.values)
 
-    shap_values = explain_instance(x_input)
+    all_feature_keys = NUM_FEATURES + BINARY_FEATURES
+    original_values = []
+    for key in all_feature_keys:
+        key_lower = key.lower()
+        value = user_input.get(key_lower, user_input.get(key, None))
+        original_values.append(value)
 
-    feature_names = [
-        "Total Units Approved",
-        "Average Grade (scaled)",
-        "Age at Enrollment", 
-        "Total Units Evaluated",
-        "Total Units Enrolled",
-        "Previous Qualification Grade (scaled)",
-        "Tuition Fees Up to Date",
-        "Scholarship Holder",
-        "Debtor",
-        "Gender"
-    ]
-    
-    # Create readable explanation
-    feature_explanations = []
-    original_values = list(user_input.values())
-    preprocessed_values = x_input[0]
-    
-    for i, feature_name in enumerate(feature_names):
-        dropout_impact = shap_values[0][i][0]
-        graduate_impact = shap_values[0][i][1]
-        
-        feature_explanations.append({
-            "feature": feature_name,
-            "original_value": original_values[i],
-            "preprocessed_value": round(preprocessed_values[i], 4),
-            "dropout_impact": round(dropout_impact, 4),
-            "graduate_impact": round(graduate_impact, 4),
-            "interpretation": "Increases dropout risk" if dropout_impact > 0 else "Decreases dropout risk" if dropout_impact < 0 else "Neutral impact"
-        })
-    
-    # Sort by absolute impact
-    feature_explanations.sort(key=lambda x: abs(x["dropout_impact"]), reverse=True)
+    try:
+        shap_values = explain_instance(x_input)
+        shap_array, has_two_classes = _normalize_shap_values(shap_values)
 
-    return {
-        "prediction": pred,
-        "explanation": {
-            "feature_impacts": feature_explanations,
-            "summary": {
-                "most_influential_feature": feature_explanations[0]["feature"],
-                "strongest_dropout_factor": max(feature_explanations, key=lambda x: x["dropout_impact"])["feature"] if any(f["dropout_impact"] > 0 for f in feature_explanations) else "None",
-                "strongest_protective_factor": min(feature_explanations, key=lambda x: x["dropout_impact"])["feature"] if any(f["dropout_impact"] < 0 for f in feature_explanations) else "None"
-            }
+        feature_explanations = []
+        preprocessed_values = x_input[0]
+
+        num_features = min(
+            len(FEATURE_NAMES),
+            shap_array.shape[1] if shap_array.ndim >= 2 else len(shap_array),
+        )
+
+        for i in range(num_features):
+            try:
+                dropout_impact, graduate_impact = _extract_impacts(
+                    shap_array, has_two_classes, i
+                )
+
+                feature_explanations.append(
+                    {
+                        "feature": FEATURE_NAMES[i],
+                        "original_value": (
+                            original_values[i] if i < len(original_values) else None
+                        ),
+                        "preprocessed_value": (
+                            round(float(preprocessed_values[i]), 4)
+                            if i < len(preprocessed_values)
+                            else 0.0
+                        ),
+                        "dropout_impact": round(dropout_impact, 4),
+                        "graduate_impact": round(graduate_impact, 4),
+                        "interpretation": _get_interpretation(dropout_impact),
+                    }
+                )
+            except (IndexError, ValueError) as e:
+                continue
+
+        if not feature_explanations:
+            raise ValueError("No feature explanations could be generated")
+
+        feature_explanations.sort(key=lambda x: abs(x["dropout_impact"]), reverse=True)
+
+        return {
+            "prediction": pred,
+            "explanation": {
+                "feature_impacts": feature_explanations,
+                "summary": _compute_summary(feature_explanations),
+            },
         }
-    }
+    except Exception as e:
+        return {
+            "prediction": pred,
+            "explanation": {
+                "error": f"Could not generate explanation: {str(e)}",
+                "feature_impacts": [],
+            },
+        }

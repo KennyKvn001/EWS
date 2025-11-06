@@ -90,6 +90,7 @@ async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(ge
         logger.error(f"Error getting students: {e}")
         return {"error": "Failed to get students", "details": str(e)}
 
+
 @app.post("/predict")
 def predict_student(input_data: PredicitonInput):
     """Predict student risk status with percentile grades and 0-20 scale units"""
@@ -101,8 +102,9 @@ def predict_student(input_data: PredicitonInput):
         return {
             "error": "Prediction failed",
             "message": str(e),
-            "hint": "Check /predict/input-guide for correct input format"
+            "hint": "Check /predict/input-guide for correct input format",
         }
+
 
 @app.post("/predict_with_xai")
 def predict_with_xai(input_data: PredicitonInput):
@@ -115,25 +117,28 @@ def predict_with_xai(input_data: PredicitonInput):
         return {
             "error": "Prediction failed",
             "message": str(e),
-            "hint": "Check /predict/input-guide for correct input format"
+            "hint": "Check /predict/input-guide for correct input format",
         }
 
+
 @app.post("/students/create-with-prediction", response_model=StudentWithPrediction)
-def create_student_with_prediction(student_data: StudentCreate, db: Session = Depends(get_db)):
+def create_student_with_prediction(
+    student_data: StudentCreate, db: Session = Depends(get_db)
+):
     """Create a new student record and automatically generate prediction"""
     try:
         # Get prediction first
         prediction_result = predict(student_data.model_dump())
-        
+
         if "error" in prediction_result:
             return {
                 "error": "Prediction failed",
                 "message": prediction_result.get("message", "Unknown prediction error"),
-                "details": prediction_result
+                "details": prediction_result,
             }
-        
+
         gender_str = "male" if student_data.gender == 1 else "female"
-        
+
         # Create student record with prediction results
         new_student = Student(
             age_at_enrollment=student_data.age_at_enrollment,
@@ -150,25 +155,25 @@ def create_student_with_prediction(student_data: StudentCreate, db: Session = De
             # Prediction results
             risk_score=prediction_result["probability"]["dropout"],
             risk_category=prediction_result["risk_category"],
-            last_prediction_date=datetime.now()
+            last_prediction_date=datetime.now(),
         )
-        
+
         db.add(new_student)
         db.commit()
         db.refresh(new_student)
-        
+
         # Also create a prediction log entry
         prediction_log = PredictionLog(
             student_id=new_student.id,
             risk_score=prediction_result["probability"]["dropout"],
             risk_category=prediction_result["risk_category"],
             model_version="nn_b_model_v1",
-            created_by=student_data.uploaded_by
+            created_by=student_data.uploaded_by,
         )
-        
+
         db.add(prediction_log)
         db.commit()
-        
+
         # Prepare response
         response_data = {
             "id": str(new_student.id),
@@ -187,19 +192,21 @@ def create_student_with_prediction(student_data: StudentCreate, db: Session = De
             "risk_score": new_student.risk_score,
             "risk_category": new_student.risk_category,
             "prediction_label": prediction_result["label"],
-            "last_prediction_date": new_student.last_prediction_date.isoformat()
+            "last_prediction_date": new_student.last_prediction_date.isoformat(),
         }
-        
-        logger.info(f"Created student {new_student.id} with prediction: {prediction_result['risk_category']}")
+
+        logger.info(
+            f"Created student {new_student.id} with prediction: {prediction_result['risk_category']}"
+        )
         return response_data
-        
+
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating student with prediction: {e}")
         return {
             "error": "Failed to create student",
             "message": str(e),
-            "hint": "Check your input data and try again"
+            "hint": "Check your input data and try again",
         }
 
 
@@ -226,6 +233,7 @@ async def file_upload(file: UploadFile = File(...)):
         logger.error(f"Error in file upload: {e}")
         return {"error": "Failed to upload file", "details": str(e)}
 
+
 @app.get("/health")
 async def health_check():
     """Enhanced health check endpoint with database status"""
@@ -245,5 +253,9 @@ async def test_db_connection():
     else:
         return {"status": "error", "message": "Database connection failed"}
 
+
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    import os
+
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
