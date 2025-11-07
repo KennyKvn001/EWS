@@ -38,7 +38,8 @@ export interface PredictionWithExplanationResponse {
   };
   explanation: {
     feature_impacts: FeatureImpact[];
-    summary: ExplanationSummary;
+    summary?: ExplanationSummary;
+    error?: string;
   };
 }
 
@@ -74,7 +75,8 @@ export interface EnhancedPredictionResult {
   predictionLabel: string;
   explanation?: {
     topFeatures: FeatureImpact[];
-    summary: ExplanationSummary;
+    summary?: ExplanationSummary;
+    error?: string;
   };
 }
 
@@ -127,35 +129,37 @@ export interface UserFriendlyPredictionInput {
 }
 
 export interface PredictionInputMapping {
-  Total_Units_Approved: 'total_units_approved';
-  Average_Grade: 'average_grade';
-  Age_At_Enrollment: 'age_at_enrollment';
-  Total_Units_Evaluated: 'total_units_evaluated';
-  Total_Units_Enrolled: 'total_units_enrolled';
-  Previous_Qualification_Grade: 'previous_qualification_grade';
-  Tuition_Fees_Up_To_Date: 'tuition_fees_up_to_date';
-  Scholarship_Holder: 'scholarship_holder';
-  Debtor: 'debtor';
-  Gender: 'gender';
+  Total_Units_Approved: "total_units_approved";
+  Average_Grade: "average_grade";
+  Age_At_Enrollment: "age_at_enrollment";
+  Total_Units_Evaluated: "total_units_evaluated";
+  Total_Units_Enrolled: "total_units_enrolled";
+  Previous_Qualification_Grade: "previous_qualification_grade";
+  Tuition_Fees_Up_To_Date: "tuition_fees_up_to_date";
+  Scholarship_Holder: "scholarship_holder";
+  Debtor: "debtor";
+  Gender: "gender";
 }
 
 export const PREDICTION_FIELD_MAPPING: PredictionInputMapping = {
-  Total_Units_Approved: 'total_units_approved',
-  Average_Grade: 'average_grade',
-  Age_At_Enrollment: 'age_at_enrollment',
-  Total_Units_Evaluated: 'total_units_evaluated',
-  Total_Units_Enrolled: 'total_units_enrolled',
-  Previous_Qualification_Grade: 'previous_qualification_grade',
-  Tuition_Fees_Up_To_Date: 'tuition_fees_up_to_date',
-  Scholarship_Holder: 'scholarship_holder',
-  Debtor: 'debtor',
-  Gender: 'gender',
+  Total_Units_Approved: "total_units_approved",
+  Average_Grade: "average_grade",
+  Age_At_Enrollment: "age_at_enrollment",
+  Total_Units_Evaluated: "total_units_evaluated",
+  Total_Units_Enrolled: "total_units_enrolled",
+  Previous_Qualification_Grade: "previous_qualification_grade",
+  Tuition_Fees_Up_To_Date: "tuition_fees_up_to_date",
+  Scholarship_Holder: "scholarship_holder",
+  Debtor: "debtor",
+  Gender: "gender",
 };
 
 export function convertToBackendFormat(
   userInput: UserFriendlyPredictionInput,
   uploadedBy: string
-): Omit<import('./student').StudentCreate, 'uploaded_by'> & { uploaded_by: string } {
+): Omit<import("./student").StudentCreate, "uploaded_by"> & {
+  uploaded_by: string;
+} {
   return {
     total_units_approved: userInput.Total_Units_Approved,
     average_grade: userInput.Average_Grade,
@@ -172,7 +176,7 @@ export function convertToBackendFormat(
 }
 
 export function convertFromBackendFormat(
-  backendData: import('./student').Student | import('./student').StudentCreate
+  backendData: import("./student").Student | import("./student").StudentCreate
 ): UserFriendlyPredictionInput {
   return {
     Total_Units_Approved: backendData.total_units_approved,

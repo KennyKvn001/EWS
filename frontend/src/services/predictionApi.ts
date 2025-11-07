@@ -4,6 +4,7 @@ import type {
   PredictionWithExplanationResponse,
   FeatureImpact,
 } from "../types/prediction";
+import type { StudentWithPrediction } from "../types/student";
 
 export interface ApiErrorResponse {
   error: string;
@@ -101,32 +102,40 @@ export class FormDataConverter {
     if (!resp.explanation || typeof resp.explanation !== "object") return false;
 
     const explanation = resp.explanation as Record<string, unknown>;
-    if (
-      !Array.isArray(explanation.feature_impacts) ||
-      !explanation.summary ||
-      typeof explanation.summary !== "object"
-    )
-      return false;
+    if (!Array.isArray(explanation.feature_impacts)) return false;
 
-    for (const impact of explanation.feature_impacts) {
-      if (
-        !impact ||
-        typeof impact !== "object" ||
-        typeof (impact as any).feature !== "string" ||
-        typeof (impact as any).dropout_impact !== "number" ||
-        typeof (impact as any).graduate_impact !== "number" ||
-        typeof (impact as any).interpretation !== "string"
-      )
-        return false;
+    // Allow empty feature_impacts if there's an error
+    if (explanation.feature_impacts.length > 0) {
+      for (const impact of explanation.feature_impacts) {
+        if (
+          !impact ||
+          typeof impact !== "object" ||
+          typeof (impact as any).feature !== "string" ||
+          typeof (impact as any).dropout_impact !== "number" ||
+          typeof (impact as any).graduate_impact !== "number" ||
+          typeof (impact as any).interpretation !== "string"
+        )
+          return false;
+      }
     }
 
-    const summary = explanation.summary as Record<string, unknown>;
-    if (
-      typeof summary.most_influential_feature !== "string" ||
-      typeof summary.strongest_dropout_factor !== "string" ||
-      typeof summary.strongest_protective_factor !== "string"
-    )
-      return false;
+    // Summary is optional if there's an error in explanation
+    if (explanation.summary && typeof explanation.summary === "object") {
+      const summary = explanation.summary as Record<string, unknown>;
+      // Only validate summary fields if summary exists
+      if (
+        summary.most_influential_feature !== undefined &&
+        summary.strongest_dropout_factor !== undefined &&
+        summary.strongest_protective_factor !== undefined
+      ) {
+        if (
+          typeof summary.most_influential_feature !== "string" ||
+          typeof summary.strongest_dropout_factor !== "string" ||
+          typeof summary.strongest_protective_factor !== "string"
+        )
+          return false;
+      }
+    }
 
     return true;
   }
@@ -380,6 +389,58 @@ export class PredictionApiService {
       return false;
     }
   }
+
+  async createStudentWithPrediction(
+    formData: PredictionFormData,
+    uploadedBy: string
+  ): Promise<StudentWithPrediction> {
+    const requestData = {
+      age_at_enrollment: formData.age_at_enrollment,
+      gender: formData.gender,
+      total_units_approved: formData.total_units_approved,
+      average_grade: formData.average_grade,
+      total_units_evaluated: formData.total_units_evaluated,
+      total_units_enrolled: formData.total_units_enrolled,
+      previous_qualification_grade: formData.previous_qualification_grade,
+      tuition_fees_up_to_date: formData.tuition_fees_up_to_date,
+      scholarship_holder: formData.scholarship_holder,
+      debtor: formData.debtor,
+      uploaded_by: uploadedBy,
+    };
+
+    const response = await this.fetchWithTimeout(
+      `${this.baseUrl}/students/create-with-prediction`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      },
+      this.defaultTimeout
+    );
+
+    if (!response.ok) {
+      let errorData: ApiErrorResponse;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = {
+          error: "HTTP Error",
+          message: `Failed to create student with status ${response.status}`,
+        };
+      }
+
+      throw new PredictionApiError(
+        this.getErrorMessage(errorData, response.status),
+        errorData,
+        response.status >= 400 && response.status < 500
+          ? ErrorType.VALIDATION_ERROR
+          : ErrorType.SERVER_ERROR,
+        false
+      );
+    }
+
+    return await response.json();
+  }
 }
 
 export enum ErrorType {
@@ -460,8 +521,9 @@ export class PredictionResultConverter {
       riskScore: prediction.probability.dropout,
       predictionLabel: prediction.label,
       explanation: {
-        topFeatures: explanation.feature_impacts, // Pass all features, component will handle display
+        topFeatures: explanation.feature_impacts || [],
         summary: explanation.summary,
+        error: explanation.error,
       },
     };
   }

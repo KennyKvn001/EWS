@@ -20,11 +20,12 @@ export interface PredictionResult {
   predictionLabel?: string;
   explanation?: {
     topFeatures: FeatureImpact[];
-    summary: {
+    summary?: {
       most_influential_feature: string;
       strongest_dropout_factor: string;
       strongest_protective_factor: string;
     };
+    error?: string;
   };
 }
 
@@ -37,7 +38,6 @@ interface PredictionResultDialogProps {
   isExplainingLoading?: boolean;
   isRerunLoading?: boolean;
 }
-
 
 export default function PredictionResultDialog({
   open,

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router"
+import { NavLink } from "react-router";
 import {
   SquareChartGantt,
   BrainCircuit,
@@ -8,7 +8,7 @@ import {
   Settings,
   HelpCircle,
   LogOut,
-} from "lucide-react"
+} from "lucide-react";
 
 // Menu items
 const menuItems = [
@@ -23,8 +23,8 @@ const menuItems = [
     icon: BrainCircuit,
   },
   {
-    title: "At-Risk Students",
-    url: "/at-risk-view",
+    title: "Students",
+    url: "/students",
     icon: TriangleAlertIcon,
   },
   {
@@ -32,40 +32,44 @@ const menuItems = [
     url: "/simulation",
     icon: SquareChartGantt,
   },
-]
+];
 
 const generalItems = [
   {
     title: "Settings",
     icon: Settings,
-    onClick: () => console.log('Settings'),
+    onClick: () => console.log("Settings"),
   },
   {
     title: "Help",
     icon: HelpCircle,
-    onClick: () => console.log('Help'),
+    onClick: () => console.log("Help"),
   },
   {
     title: "Logout",
     icon: LogOut,
-    onClick: () => console.log('Logout'),
+    onClick: () => console.log("Logout"),
   },
-]
+];
 
 interface AppSidebarProps {
-  collapsed: boolean
-  onToggle: () => void
+  collapsed: boolean;
+  onToggle: () => void;
 }
 
 export default function AppSidebar({ collapsed }: AppSidebarProps) {
   return (
-    <aside 
+    <aside
       className={`bg-gradient-to-b from-[#1e3a8a] via-[#2563eb] to-[#1e40af] rounded-xl p-4 flex flex-col shadow-xl transition-all duration-300 ${
-        collapsed ? 'w-20' : 'w-64'
+        collapsed ? "w-20" : "w-64"
       }`}
     >
       {/* Logo */}
-      <div className={`flex items-center gap-3 mb-8 ${collapsed ? 'justify-center' : ''}`}>
+      <div
+        className={`flex items-center gap-3 mb-8 ${
+          collapsed ? "justify-center" : ""
+        }`}
+      >
         <div className="flex aspect-square size-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm shrink-0">
           <GraduationCap className="size-7 text-white" />
         </div>
@@ -81,17 +85,21 @@ export default function AppSidebar({ collapsed }: AppSidebarProps) {
       <div className="flex flex-col flex-1">
         {!collapsed && (
           <div className="mb-4">
-            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold px-3">MENU</p>
+            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold px-3">
+              MENU
+            </p>
           </div>
         )}
-        
+
         <nav className="space-y-1 flex-1">
           {menuItems.map((item) => (
             <NavLink
               key={item.title}
               to={item.url}
               className={({ isActive }) =>
-                `flex items-center ${collapsed ? 'justify-center' : 'justify-between'} gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
+                `flex items-center ${
+                  collapsed ? "justify-center" : "justify-between"
+                } gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "bg-[#1e40af] text-white shadow-lg"
                     : "text-white/80 hover:bg-white/10 hover:text-white"
@@ -99,9 +107,15 @@ export default function AppSidebar({ collapsed }: AppSidebarProps) {
               }
               title={collapsed ? item.title : undefined}
             >
-              <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+              <div
+                className={`flex items-center gap-3 ${
+                  collapsed ? "justify-center" : ""
+                }`}
+              >
                 <item.icon className="size-5 shrink-0" />
-                {!collapsed && <span className="font-medium text-sm">{item.title}</span>}
+                {!collapsed && (
+                  <span className="font-medium text-sm">{item.title}</span>
+                )}
               </div>
             </NavLink>
           ))}
@@ -110,23 +124,29 @@ export default function AppSidebar({ collapsed }: AppSidebarProps) {
         {/* GENERAL Section */}
         <div className="mt-6 pt-6 border-t border-white/10">
           {!collapsed && (
-            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold px-3 mb-3">GENERAL</p>
+            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold px-3 mb-3">
+              GENERAL
+            </p>
           )}
           <div className="space-y-1">
             {generalItems.map((item) => (
               <button
                 key={item.title}
                 onClick={item.onClick}
-                className={`w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-white/80 hover:bg-white/10 hover:text-white`}
+                className={`w-full flex items-center ${
+                  collapsed ? "justify-center" : ""
+                } gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-white/80 hover:bg-white/10 hover:text-white`}
                 title={collapsed ? item.title : undefined}
               >
                 <item.icon className="size-5 shrink-0" />
-                {!collapsed && <span className="font-medium text-sm">{item.title}</span>}
+                {!collapsed && (
+                  <span className="font-medium text-sm">{item.title}</span>
+                )}
               </button>
             ))}
           </div>
         </div>
       </div>
     </aside>
-  )
+  );
 }

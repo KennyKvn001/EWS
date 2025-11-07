@@ -79,18 +79,27 @@ def _normalize_shap_values(shap_values) -> Tuple[np.ndarray, bool]:
         Tuple of (normalized_shap_array, has_two_classes)
     """
     if isinstance(shap_values, list) and len(shap_values) == 2:
+        # Binary classification: SHAP returns list of 2 arrays (one per class)
         shap_dropout = _ensure_2d(np.array(shap_values[0]))
         shap_graduate = _ensure_2d(np.array(shap_values[1]))
+        # Stack along axis=2 to create (samples, features, classes) shape
         shap_array = np.stack([shap_dropout, shap_graduate], axis=2)
         return shap_array, True
-    else:
-        shap_array = np.array(
-            shap_values[0] if isinstance(shap_values, list) else shap_values
-        )
+    elif isinstance(shap_values, list) and len(shap_values) > 0:
+        # Single class or unexpected format - take first element
+        shap_array = np.array(shap_values[0])
+        shap_array = _ensure_2d(shap_array)
+        # Reshape to 3D: (samples, features, 1)
         if shap_array.ndim == 2:
-            shap_array = shap_array.reshape(1, *shap_array.shape)
-        elif shap_array.ndim == 1:
-            shap_array = shap_array.reshape(1, -1, 1)
+            shap_array = shap_array.reshape(shap_array.shape[0], shap_array.shape[1], 1)
+        return shap_array, False
+    else:
+        # Single array (not a list)
+        shap_array = np.array(shap_values)
+        shap_array = _ensure_2d(shap_array)
+        # Reshape to 3D: (samples, features, 1)
+        if shap_array.ndim == 2:
+            shap_array = shap_array.reshape(shap_array.shape[0], shap_array.shape[1], 1)
         return shap_array, False
 
 
@@ -100,24 +109,35 @@ def _extract_impacts(
     """
     Extract dropout and graduate impacts from normalized SHAP array.
 
+    After normalization, shap_array should always be 3D: (samples, features, classes).
+    For binary classification with has_two_classes=True, shape[2] should be 2.
+
     Returns:
         Tuple of (dropout_impact, graduate_impact)
     """
     if shap_array.ndim == 3:
         dropout_impact = float(shap_array[0, feature_idx, 0])
-        graduate_impact = (
-            float(shap_array[0, feature_idx, 1]) if has_two_classes else 0.0
-        )
-    elif shap_array.ndim == 2:
-        if shap_array.shape[1] > 1 and has_two_classes:
-            dropout_impact = float(shap_array[feature_idx, 0])
-            graduate_impact = float(shap_array[feature_idx, 1])
+        if shap_array.shape[2] >= 2:
+            graduate_impact = float(shap_array[0, feature_idx, 1])
         else:
-            dropout_impact = float(shap_array[0, feature_idx])
             graduate_impact = 0.0
     else:
-        dropout_impact = float(shap_array[feature_idx])
-        graduate_impact = 0.0
+        if shap_array.ndim == 2:
+            dropout_impact = float(shap_array[0, feature_idx])
+            if (
+                has_two_classes
+                and shap_array.shape[1] > feature_idx + shap_array.shape[0]
+            ):
+                num_features = shap_array.shape[1] // 2
+                if feature_idx < num_features:
+                    graduate_impact = float(shap_array[0, feature_idx + num_features])
+                else:
+                    graduate_impact = 0.0
+            else:
+                graduate_impact = 0.0
+        else:
+            dropout_impact = float(shap_array[feature_idx])
+            graduate_impact = 0.0
 
     return dropout_impact, graduate_impact
 
@@ -177,11 +197,39 @@ def predict_with_explanation(user_input: dict) -> dict:
     x_input_df = preprocess_input(user_input)
     x_input = _ensure_2d(x_input_df.values)
 
+    def _get_original_value(feature_key: str, user_input: dict):
+        """
+        Get original value from user_input by trying multiple key variations.
+        Handles mismatches between feature names and actual input keys.
+        """
+        # Try exact match (case-insensitive)
+        key_lower = feature_key.lower()
+        if key_lower in user_input:
+            return user_input[key_lower]
+        if feature_key in user_input:
+            return user_input[feature_key]
+
+        # Try variations for special cases
+        # "Previous_qualification_(grade)" -> "previous_qualification_grade"
+        normalized_key = key_lower.replace("_(", "_").replace("(", "").replace(")", "")
+        if normalized_key in user_input:
+            return user_input[normalized_key]
+
+        # Try removing underscores and parentheses
+        simple_key = key_lower.replace("_", "").replace("(", "").replace(")", "")
+        for k in user_input.keys():
+            if (
+                k.lower().replace("_", "").replace("(", "").replace(")", "")
+                == simple_key
+            ):
+                return user_input[k]
+
+        return None
+
     all_feature_keys = NUM_FEATURES + BINARY_FEATURES
     original_values = []
     for key in all_feature_keys:
-        key_lower = key.lower()
-        value = user_input.get(key_lower, user_input.get(key, None))
+        value = _get_original_value(key, user_input)
         original_values.append(value)
 
     try:
