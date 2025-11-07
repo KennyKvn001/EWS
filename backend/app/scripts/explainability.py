@@ -79,18 +79,27 @@ def _normalize_shap_values(shap_values) -> Tuple[np.ndarray, bool]:
         Tuple of (normalized_shap_array, has_two_classes)
     """
     if isinstance(shap_values, list) and len(shap_values) == 2:
+        # Binary classification: SHAP returns list of 2 arrays (one per class)
         shap_dropout = _ensure_2d(np.array(shap_values[0]))
         shap_graduate = _ensure_2d(np.array(shap_values[1]))
+        # Stack along axis=2 to create (samples, features, classes) shape
         shap_array = np.stack([shap_dropout, shap_graduate], axis=2)
         return shap_array, True
-    else:
-        shap_array = np.array(
-            shap_values[0] if isinstance(shap_values, list) else shap_values
-        )
+    elif isinstance(shap_values, list) and len(shap_values) > 0:
+        # Single class or unexpected format - take first element
+        shap_array = np.array(shap_values[0])
+        shap_array = _ensure_2d(shap_array)
+        # Reshape to 3D: (samples, features, 1)
         if shap_array.ndim == 2:
-            shap_array = shap_array.reshape(1, *shap_array.shape)
-        elif shap_array.ndim == 1:
-            shap_array = shap_array.reshape(1, -1, 1)
+            shap_array = shap_array.reshape(shap_array.shape[0], shap_array.shape[1], 1)
+        return shap_array, False
+    else:
+        # Single array (not a list)
+        shap_array = np.array(shap_values)
+        shap_array = _ensure_2d(shap_array)
+        # Reshape to 3D: (samples, features, 1)
+        if shap_array.ndim == 2:
+            shap_array = shap_array.reshape(shap_array.shape[0], shap_array.shape[1], 1)
         return shap_array, False
 
 
@@ -100,24 +109,35 @@ def _extract_impacts(
     """
     Extract dropout and graduate impacts from normalized SHAP array.
 
+    After normalization, shap_array should always be 3D: (samples, features, classes).
+    For binary classification with has_two_classes=True, shape[2] should be 2.
+
     Returns:
         Tuple of (dropout_impact, graduate_impact)
     """
     if shap_array.ndim == 3:
         dropout_impact = float(shap_array[0, feature_idx, 0])
-        graduate_impact = (
-            float(shap_array[0, feature_idx, 1]) if has_two_classes else 0.0
-        )
-    elif shap_array.ndim == 2:
-        if shap_array.shape[1] > 1 and has_two_classes:
-            dropout_impact = float(shap_array[feature_idx, 0])
-            graduate_impact = float(shap_array[feature_idx, 1])
+        if shap_array.shape[2] >= 2:
+            graduate_impact = float(shap_array[0, feature_idx, 1])
         else:
-            dropout_impact = float(shap_array[0, feature_idx])
             graduate_impact = 0.0
     else:
-        dropout_impact = float(shap_array[feature_idx])
-        graduate_impact = 0.0
+        if shap_array.ndim == 2:
+            dropout_impact = float(shap_array[0, feature_idx])
+            if (
+                has_two_classes
+                and shap_array.shape[1] > feature_idx + shap_array.shape[0]
+            ):
+                num_features = shap_array.shape[1] // 2
+                if feature_idx < num_features:
+                    graduate_impact = float(shap_array[0, feature_idx + num_features])
+                else:
+                    graduate_impact = 0.0
+            else:
+                graduate_impact = 0.0
+        else:
+            dropout_impact = float(shap_array[feature_idx])
+            graduate_impact = 0.0
 
     return dropout_impact, graduate_impact
 
