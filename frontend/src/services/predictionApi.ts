@@ -4,13 +4,20 @@ import type {
   PredictionWithExplanationResponse,
   FeatureImpact,
 } from "../types/prediction";
-import type { StudentWithPrediction } from "../types/student";
+import type { Student, StudentWithPrediction } from "../types/student";
 
 export interface ApiErrorResponse {
   error: string;
   message: string;
   details?: Record<string, unknown>;
   hint?: string;
+}
+
+export interface AtRiskStudentsResponse {
+  students: Student[];
+  total: number;
+  skip: number;
+  limit: number;
 }
 
 export class FormDataConverter {
@@ -154,7 +161,7 @@ export class PredictionApiService {
   private retryOptions: RetryOptions;
 
   constructor(
-    baseUrl: string = "https://ews-mcr0.onrender.com",
+    baseUrl: string = "http://localhost:8000",
     timeout: number = 30000,
     retryOptions: RetryOptions = {
       maxRetries: 3,
@@ -440,6 +447,46 @@ export class PredictionApiService {
     }
 
     return await response.json();
+  }
+
+  async fetchAtRiskStudents(
+    skip: number = 0,
+    limit: number = 100
+  ): Promise<AtRiskStudentsResponse> {
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/students/at-risk?skip=${skip}&limit=${limit}`,
+        { method: "GET" },
+        this.defaultTimeout
+      );
+
+      if (!response.ok) {
+        throw new PredictionApiError(
+          "Failed to fetch at-risk students",
+          {
+            error: "HTTP Error",
+            message: `Request failed with status ${response.status}`,
+          },
+          ErrorType.SERVER_ERROR,
+          false
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof PredictionApiError) {
+        throw error;
+      }
+      throw new PredictionApiError(
+        "Unable to fetch at-risk students",
+        {
+          error: "Network Error",
+          message: error instanceof Error ? error.message : "Unknown error",
+        },
+        ErrorType.NETWORK_ERROR,
+        false
+      );
+    }
   }
 }
 

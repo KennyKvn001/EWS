@@ -119,6 +119,39 @@ async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(ge
         return {"error": "Failed to get students", "details": str(e)}
 
 
+@app.get("/students/at-risk")
+async def get_at_risk_students(
+    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+):
+    """Get students with Medium or High risk categories"""
+    try:
+        students = (
+            db.query(Student)
+            .filter(Student.risk_category.in_(["medium", "high"]))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
+        total_count = (
+            db.query(Student)
+            .filter(Student.risk_category.in_(["medium", "high"]))
+            .count()
+        )
+
+        students_data = [student.to_dict() for student in students]
+
+        return {
+            "students": students_data,
+            "total": total_count,
+            "skip": skip,
+            "limit": limit,
+        }
+    except Exception as e:
+        logger.error(f"Error getting at-risk students: {e}")
+        return {"error": "Failed to get at-risk students", "details": str(e)}
+
+
 @app.post("/predict")
 def predict_student(input_data: PredicitonInput):
     """Predict student risk status with percentile grades and 0-20 scale units"""
