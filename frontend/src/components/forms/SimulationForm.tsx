@@ -27,15 +27,35 @@ import {
   PredictionResultConverter,
 } from "@/services/predictionApi";
 import type { PredictionFormData } from "@/types/prediction";
+import type { Student } from "@/types/student";
+import { StudentSelector } from "./StudentSelector";
 
 // Validation schema - matches backend requirements (0-100 for grades)
 const formSchema = z.object({
-  total_units_approved: z.number().min(0, "Cannot be negative").max(20, "Cannot exceed 20 units"),
-  average_grade: z.number().min(0, "Grade must be at least 0").max(100, "Grade must be at most 100"),
-  age_at_enrollment: z.number().min(16, "Age must be at least 16").max(65, "Age must be at most 65"),
-  total_units_evaluated: z.number().min(0, "Cannot be negative").max(20, "Cannot exceed 20 units"),
-  total_units_enrolled: z.number().min(0, "Cannot be negative").max(20, "Cannot exceed 20 units"),
-  previous_qualification_grade: z.number().min(0, "Grade must be at least 0").max(100, "Grade must be at most 100"),
+  total_units_approved: z
+    .number()
+    .min(0, "Cannot be negative")
+    .max(20, "Cannot exceed 20 units"),
+  average_grade: z
+    .number()
+    .min(0, "Grade must be at least 0")
+    .max(100, "Grade must be at most 100"),
+  age_at_enrollment: z
+    .number()
+    .min(16, "Age must be at least 16")
+    .max(65, "Age must be at most 65"),
+  total_units_evaluated: z
+    .number()
+    .min(0, "Cannot be negative")
+    .max(20, "Cannot exceed 20 units"),
+  total_units_enrolled: z
+    .number()
+    .min(0, "Cannot be negative")
+    .max(20, "Cannot exceed 20 units"),
+  previous_qualification_grade: z
+    .number()
+    .min(0, "Grade must be at least 0")
+    .max(100, "Grade must be at most 100"),
   tuition_fees_up_to_date: z.boolean(),
   scholarship_holder: z.boolean(),
   debtor: z.boolean(),
@@ -46,11 +66,13 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function SimulationForm() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
+  const [predictionResult, setPredictionResult] =
+    useState<PredictionResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExplaining, setIsExplaining] = useState(false);
   const [isRerunning, setIsRerunning] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -72,6 +94,40 @@ export default function SimulationForm() {
     if (apiError) {
       setApiError(null);
     }
+  };
+
+  const handleStudentSelect = (student: Student | null) => {
+    setSelectedStudent(student);
+
+    if (student) {
+      form.reset({
+        total_units_approved: student.total_units_approved,
+        average_grade: student.average_grade,
+        age_at_enrollment: student.age_at_enrollment,
+        total_units_evaluated: student.total_units_evaluated,
+        total_units_enrolled: student.total_units_enrolled,
+        previous_qualification_grade: student.previous_qualification_grade,
+        tuition_fees_up_to_date: student.tuition_fees_up_to_date,
+        scholarship_holder: student.scholarship_holder,
+        debtor: student.debtor,
+        gender: student.gender as "male" | "female",
+      });
+    } else {
+      form.reset({
+        total_units_approved: 0,
+        average_grade: 50,
+        age_at_enrollment: 0,
+        total_units_evaluated: 0,
+        total_units_enrolled: 0,
+        previous_qualification_grade: 50,
+        tuition_fees_up_to_date: false,
+        scholarship_holder: false,
+        debtor: false,
+        gender: "female",
+      });
+    }
+
+    clearApiError();
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -163,6 +219,15 @@ export default function SimulationForm() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card>
             <CardContent>
+              {/* Student Selector */}
+              <div className="mb-6">
+                <StudentSelector
+                  onStudentSelect={handleStudentSelect}
+                  selectedStudentId={selectedStudent?.id}
+                  disabled={isSubmitting || isRerunning}
+                />
+              </div>
+
               {apiError && (
                 <Alert variant="destructive" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
@@ -178,7 +243,9 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Total Units Approved</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">
+                          {field.value}
+                        </span>
                       </div>
                       <FormControl>
                         <Slider
@@ -193,7 +260,9 @@ export default function SimulationForm() {
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Number of units approved (0-20)</FormDescription>
+                      <FormDescription>
+                        Number of units approved (0-20)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -207,7 +276,9 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Average Grade</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value.toFixed(1)}%</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">
+                          {field.value.toFixed(1)}%
+                        </span>
                       </div>
                       <FormControl>
                         <Slider
@@ -222,7 +293,9 @@ export default function SimulationForm() {
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Student's average grade as percentage (0-100%)</FormDescription>
+                      <FormDescription>
+                        Student's average grade as percentage (0-100%)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -236,7 +309,9 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Age at Enrollment</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">
+                          {field.value}
+                        </span>
                       </div>
                       <FormControl>
                         <Slider
@@ -251,7 +326,9 @@ export default function SimulationForm() {
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Student's age at enrollment (16-65 years)</FormDescription>
+                      <FormDescription>
+                        Student's age at enrollment (16-65 years)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -265,7 +342,9 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Total Units Evaluated</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">
+                          {field.value}
+                        </span>
                       </div>
                       <FormControl>
                         <Slider
@@ -280,7 +359,9 @@ export default function SimulationForm() {
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Number of units evaluated (0-20)</FormDescription>
+                      <FormDescription>
+                        Number of units evaluated (0-20)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -294,7 +375,9 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Total Units Enrolled</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value}</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">
+                          {field.value}
+                        </span>
                       </div>
                       <FormControl>
                         <Slider
@@ -309,7 +392,9 @@ export default function SimulationForm() {
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Number of units enrolled (0-20)</FormDescription>
+                      <FormDescription>
+                        Number of units enrolled (0-20)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -323,7 +408,9 @@ export default function SimulationForm() {
                     <FormItem>
                       <div className="flex justify-between items-center">
                         <FormLabel>Previous Qualification (Grade)</FormLabel>
-                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">{field.value.toFixed(1)}%</span>
+                        <span className="text-sm font-semibold text-[#2563eb] dark:text-[#60a5fa]">
+                          {field.value.toFixed(1)}%
+                        </span>
                       </div>
                       <FormControl>
                         <Slider
@@ -338,7 +425,9 @@ export default function SimulationForm() {
                           className="w-full"
                         />
                       </FormControl>
-                      <FormDescription>Grade from previous qualification as percentage (0-100%)</FormDescription>
+                      <FormDescription>
+                        Grade from previous qualification as percentage (0-100%)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -351,16 +440,20 @@ export default function SimulationForm() {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Tuition Fees Up to Date</FormLabel>
-                        <FormDescription>Are tuition fees up to date?</FormDescription>
+                        <FormLabel className="text-base">
+                          Tuition Fees Up to Date
+                        </FormLabel>
+                        <FormDescription>
+                          Are tuition fees up to date?
+                        </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch 
-                          checked={field.value} 
+                        <Switch
+                          checked={field.value}
                           onCheckedChange={(checked) => {
                             field.onChange(checked);
                             clearApiError();
-                          }} 
+                          }}
                         />
                       </FormControl>
                     </FormItem>
@@ -374,16 +467,20 @@ export default function SimulationForm() {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Scholarship Holder</FormLabel>
-                        <FormDescription>Does the student have a scholarship?</FormDescription>
+                        <FormLabel className="text-base">
+                          Scholarship Holder
+                        </FormLabel>
+                        <FormDescription>
+                          Does the student have a scholarship?
+                        </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch 
-                          checked={field.value} 
+                        <Switch
+                          checked={field.value}
                           onCheckedChange={(checked) => {
                             field.onChange(checked);
                             clearApiError();
-                          }} 
+                          }}
                         />
                       </FormControl>
                     </FormItem>
@@ -398,15 +495,17 @@ export default function SimulationForm() {
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">Debtor</FormLabel>
-                        <FormDescription>Is the student a debtor?</FormDescription>
+                        <FormDescription>
+                          Is the student a debtor?
+                        </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch 
-                          checked={field.value} 
+                        <Switch
+                          checked={field.value}
                           onCheckedChange={(checked) => {
                             field.onChange(checked);
                             clearApiError();
-                          }} 
+                          }}
                         />
                       </FormControl>
                     </FormItem>
@@ -433,13 +532,17 @@ export default function SimulationForm() {
                             <FormControl>
                               <RadioGroupItem value="female" />
                             </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Female</FormLabel>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Female
+                            </FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl>
                               <RadioGroupItem value="male" />
                             </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Male</FormLabel>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Male
+                            </FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -450,15 +553,22 @@ export default function SimulationForm() {
               </div>
 
               {/* Submit Button */}
-              <div className="mt-6 flex justify-end">
-                <Button 
-                  type="submit" 
-                  className="bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all"
-                  disabled={isSubmitting || isRerunning}
+              <div className="mt-6 flex flex-col items-end gap-2">
+                {!selectedStudent && (
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                    Please select a student to run simulation
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  className="bg-gradient-to-r from-[#2563eb] to-[#1e40af] hover:from-[#1d4ed8] hover:to-[#1e3a8a] text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!selectedStudent || isSubmitting || isRerunning}
                 >
                   {isSubmitting || isRerunning ? (
                     <>
-                      <span className="animate-spin mr-2"><Loader2 className="w-4 h-4 animate-spin" /></span>
+                      <span className="animate-spin mr-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      </span>
                       {isRerunning ? "Re-running..." : "Simulating..."}
                     </>
                   ) : (
@@ -484,4 +594,3 @@ export default function SimulationForm() {
     </div>
   );
 }
-
