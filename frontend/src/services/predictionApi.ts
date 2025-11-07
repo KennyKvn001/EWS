@@ -31,8 +31,8 @@ export class FormDataConverter {
       total_units_evaluated: formData.total_units_evaluated,
       total_units_enrolled: formData.total_units_enrolled,
       previous_qualification_grade: formData.previous_qualification_grade,
-      tuition_fees_up_to_date: formData.tuition_fees_up_to_date ? 0 : 1,
-      scholarship_holder: formData.scholarship_holder ? 0 : 1,
+      tuition_fees_up_to_date: formData.tuition_fees_up_to_date ? 1 : 0,
+      scholarship_holder: formData.scholarship_holder ? 1 : 0,
       debtor: formData.debtor ? 1 : 0,
       gender: formData.gender === "male" ? 1 : 0,
     };
@@ -111,7 +111,6 @@ export class FormDataConverter {
     const explanation = resp.explanation as Record<string, unknown>;
     if (!Array.isArray(explanation.feature_impacts)) return false;
 
-    // Allow empty feature_impacts if there's an error
     if (explanation.feature_impacts.length > 0) {
       for (const impact of explanation.feature_impacts) {
         if (
@@ -126,10 +125,8 @@ export class FormDataConverter {
       }
     }
 
-    // Summary is optional if there's an error in explanation
     if (explanation.summary && typeof explanation.summary === "object") {
       const summary = explanation.summary as Record<string, unknown>;
-      // Only validate summary fields if summary exists
       if (
         summary.most_influential_feature !== undefined &&
         summary.strongest_dropout_factor !== undefined &&
@@ -259,16 +256,14 @@ export class PredictionApiService {
             };
           }
 
-          // Determine error type and retry behavior based on status code
           if (response.status >= 400 && response.status < 500) {
             errorType =
               response.status === 422
                 ? ErrorType.VALIDATION_ERROR
                 : ErrorType.SERVER_ERROR;
-            isRetryable = response.status === 429; // Only retry rate limiting
-          } else if (response.status >= 500) {
+            isRetryable = response.status === 429;
             errorType = ErrorType.SERVER_ERROR;
-            isRetryable = true; // Server errors are retryable
+            isRetryable = true;
           } else {
             errorType = ErrorType.UNKNOWN_ERROR;
           }
@@ -348,7 +343,6 @@ export class PredictionApiService {
       }
     }
 
-    // This should never be reached, but just in case
     throw (
       lastError ||
       new PredictionApiError(

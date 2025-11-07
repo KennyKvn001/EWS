@@ -46,7 +46,6 @@ logger.info(f"CORS allowed origins: {allowed_origins}")
 if vercel_regex:
     logger.info(f"CORS allowed origin regex: {vercel_regex}")
 
-# Configure CORS
 cors_kwargs = {
     "allow_credentials": True,
     "allow_methods": ["*"],
@@ -55,7 +54,6 @@ cors_kwargs = {
 
 if vercel_regex:
     cors_kwargs["allow_origin_regex"] = vercel_regex
-    # Still include specific origins
     cors_kwargs["allow_origins"] = allowed_origins
 else:
     cors_kwargs["allow_origins"] = allowed_origins
@@ -100,12 +98,11 @@ async def root():
 
 @app.get("/students")
 async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get students from the database with pagination"""
+    """Get students from the database with pagination, ordered by newest first"""
     try:
-        students = db.query(Student).offset(skip).limit(limit).all()
+        students = db.query(Student).order_by(Student.created_at.desc()).offset(skip).limit(limit).all()
         total_count = db.query(Student).count()
 
-        # Convert to dictionaries for JSON response
         students_data = [student.to_dict() for student in students]
 
         return {
@@ -123,11 +120,12 @@ async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(ge
 async def get_at_risk_students(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 ):
-    """Get students with Medium or High risk categories"""
+    """Get students with Medium or High risk categories, ordered by newest first"""
     try:
         students = (
             db.query(Student)
             .filter(Student.risk_category.in_(["medium", "high"]))
+            .order_by(Student.created_at.desc())
             .offset(skip)
             .limit(limit)
             .all()
@@ -188,7 +186,6 @@ def create_student_with_prediction(
 ):
     """Create a new student record and automatically generate prediction"""
     try:
-        # Get prediction first
         prediction_result = predict(student_data.model_dump())
 
         if "error" in prediction_result:
@@ -200,7 +197,6 @@ def create_student_with_prediction(
 
         gender_str = "male" if student_data.gender == 1 else "female"
 
-        # Create student record with prediction results
         new_student = Student(
             age_at_enrollment=student_data.age_at_enrollment,
             gender=gender_str,
@@ -213,7 +209,6 @@ def create_student_with_prediction(
             scholarship_holder=bool(student_data.scholarship_holder),
             debtor=bool(student_data.debtor),
             uploaded_by=student_data.uploaded_by,
-            # Prediction results
             risk_score=prediction_result["probability"]["dropout"],
             risk_category=prediction_result["risk_category"],
             last_prediction_date=datetime.now(),
@@ -223,7 +218,6 @@ def create_student_with_prediction(
         db.commit()
         db.refresh(new_student)
 
-        # Also create a prediction log entry
         prediction_log = PredictionLog(
             student_id=new_student.id,
             risk_score=prediction_result["probability"]["dropout"],
@@ -273,7 +267,6 @@ def create_student_with_prediction(
 async def file_upload(file: UploadFile = File(...)):
     """Endpoint for uploading data files"""
     try:
-        # Validate file type
         if not file.filename.endswith((".csv", ".xlsx", ".xls")):
             return {
                 "error": "Invalid file type. Please upload CSV or Excel files only."
