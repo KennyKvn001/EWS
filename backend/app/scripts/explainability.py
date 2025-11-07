@@ -197,11 +197,39 @@ def predict_with_explanation(user_input: dict) -> dict:
     x_input_df = preprocess_input(user_input)
     x_input = _ensure_2d(x_input_df.values)
 
+    def _get_original_value(feature_key: str, user_input: dict):
+        """
+        Get original value from user_input by trying multiple key variations.
+        Handles mismatches between feature names and actual input keys.
+        """
+        # Try exact match (case-insensitive)
+        key_lower = feature_key.lower()
+        if key_lower in user_input:
+            return user_input[key_lower]
+        if feature_key in user_input:
+            return user_input[feature_key]
+
+        # Try variations for special cases
+        # "Previous_qualification_(grade)" -> "previous_qualification_grade"
+        normalized_key = key_lower.replace("_(", "_").replace("(", "").replace(")", "")
+        if normalized_key in user_input:
+            return user_input[normalized_key]
+
+        # Try removing underscores and parentheses
+        simple_key = key_lower.replace("_", "").replace("(", "").replace(")", "")
+        for k in user_input.keys():
+            if (
+                k.lower().replace("_", "").replace("(", "").replace(")", "")
+                == simple_key
+            ):
+                return user_input[k]
+
+        return None
+
     all_feature_keys = NUM_FEATURES + BINARY_FEATURES
     original_values = []
     for key in all_feature_keys:
-        key_lower = key.lower()
-        value = user_input.get(key_lower, user_input.get(key, None))
+        value = _get_original_value(key, user_input)
         original_values.append(value)
 
     try:
