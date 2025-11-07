@@ -1,6 +1,6 @@
 import Layout from "@/views/Layout";
 import { createBrowserRouter, Navigate } from "react-router";
-import AtRiskView from "@/views/AtRiskView";
+import StudentsView from "@/views/StudentsView";
 import Simulations from "@/views/Simulations";
 import Prediction from "@/views/Prediction";
 import HomeOverview from "@/views/HomeOverview";
@@ -64,8 +64,8 @@ const routes = createBrowserRouter([
         element: <Prediction />,
       },
       {
-        path: "/at-risk-view",
-        element: <AtRiskView />,
+        path: "/students",
+        element: <StudentsView />,
       },
       {
         path: "/simulation",

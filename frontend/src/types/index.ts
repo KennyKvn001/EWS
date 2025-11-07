@@ -7,15 +7,13 @@
 export type {
   Student,
   StudentCreate,
+  StudentWithPrediction,
   BatchCreate,
   GenderType,
   RiskCategoryType,
-} from './student';
+} from "./student";
 
-export {
-  Gender,
-  RiskCategory,
-} from './student';
+export { Gender, RiskCategory } from "./student";
 
 // Prediction types
 export type {
@@ -32,13 +30,13 @@ export type {
   PredictionFormData,
   PredictionInput,
   EnhancedPredictionResult,
-} from './prediction';
+} from "./prediction";
 
 export {
   PREDICTION_FIELD_MAPPING,
   convertToBackendFormat,
   convertFromBackendFormat,
-} from './prediction';
+} from "./prediction";
 
 // Batch upload types
 export type {
@@ -49,17 +47,12 @@ export type {
   BatchUploadSummary,
   BatchValidationError,
   BatchValidationResult,
-} from './batch';
+} from "./batch";
 
-export {
-  BatchUploadStatus,
-} from './batch';
+export { BatchUploadStatus } from "./batch";
 
 // Tab types
-export type {
-  TabConfig,
-  TabControllerProps,
-} from './tab';
+export type { TabConfig, TabControllerProps } from "./tab";
 
 // Common form and UI types
 export interface FormError {
@@ -88,6 +81,5 @@ export interface TableColumn<T = unknown> {
   /** Column width */
   width?: string | number;
   /** Column alignment */
-  align?: 'left' | 'center' | 'right';
+  align?: "left" | "center" | "right";
 }
-
