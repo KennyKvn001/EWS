@@ -154,7 +154,7 @@ export class PredictionApiService {
   private retryOptions: RetryOptions;
 
   constructor(
-    baseUrl: string = "http://localhost:8000",
+    baseUrl: string = "https://ews-mcr0.onrender.com",
     timeout: number = 30000,
     retryOptions: RetryOptions = {
       maxRetries: 3,
