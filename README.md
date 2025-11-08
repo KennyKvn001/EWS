@@ -503,7 +503,7 @@ Backend testing can be performed using the built-in FastAPI test client or manua
 **Manual Testing:**
 
 1. Start the backend server
-2. Navigate to http://localhost:8000/docs
+2. Navigate to [http://localhost:8000/docs](https://ews-mcr0.onrender.com/docs)
 3. Use the interactive Swagger UI to test endpoints
 
 ---
