@@ -3,8 +3,8 @@
 A comprehensive student risk prediction platform that uses machine learning to identify at risk students, providing actionable insights through explainable AI (XAI).
 ![Dashboard Overview](dashboard.png)
 
-[![Demo Video](https://img.shields.io/badge/Demo-YouTube-red)](https://youtu.be/DRfHBF6c88o)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/KennyKvn001/EWS)
+[![Demo Video](https://img.shields.io/badge/Demo-YouTube-red)](https://youtu.be/Ace3zPaHwoM)
+[![Application](https://img.shields.io/badge/Application-Live-blue)](https://ews-puce.vercel.app)
 
 ## Table of Contents
 
