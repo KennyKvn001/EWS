@@ -220,13 +220,6 @@ python db_manager.py init
 python db_manager.py test
 ```
 
-#### 2.4 (Optional) Seed Mock Data
-
-```bash
-cd backend/app/database
-
-```
-
 ### Step 3: Frontend Setup
 
 #### 3.1 Install Node Dependencies
