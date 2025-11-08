@@ -117,11 +117,11 @@ def preprocess_input(user_input: dict) -> pd.DataFrame:
     }
     processed_input["Tuition_fees_up_to_date"] = int(
         user_input.get(
-            "tuition_fees_up_to_date", user_input.get("Tuition_fees_up_to_date", 0)
+            "tuition_fees_up_to_date", user_input.get("Tuition_fees_up_to_date", 1)
         )
     )
     processed_input["Scholarship_holder"] = int(
-        user_input.get("scholarship_holder", user_input.get("Scholarship_holder", 0))
+        user_input.get("scholarship_holder", user_input.get("Scholarship_holder", 1))
     )
     processed_input["Debtor"] = int(
         user_input.get("debtor", user_input.get("Debtor", 0))

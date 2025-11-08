@@ -31,8 +31,8 @@ export class FormDataConverter {
       total_units_evaluated: formData.total_units_evaluated,
       total_units_enrolled: formData.total_units_enrolled,
       previous_qualification_grade: formData.previous_qualification_grade,
-      tuition_fees_up_to_date: formData.tuition_fees_up_to_date ? 1 : 0,
-      scholarship_holder: formData.scholarship_holder ? 1 : 0,
+      tuition_fees_up_to_date: formData.tuition_fees_up_to_date ? 0 : 1,
+      scholarship_holder: formData.scholarship_holder ? 0 : 1,
       debtor: formData.debtor ? 1 : 0,
       gender: formData.gender === "male" ? 1 : 0,
     };
@@ -158,7 +158,7 @@ export class PredictionApiService {
   private retryOptions: RetryOptions;
 
   constructor(
-    baseUrl: string = "http://localhost:8000",
+    baseUrl: string = "https://ews-mcr0.onrender.com",
     timeout: number = 30000,
     retryOptions: RetryOptions = {
       maxRetries: 3,
@@ -377,7 +377,6 @@ export class PredictionApiService {
     }
   }
 
-  // Health check method for testing connectivity
   async healthCheck(): Promise<boolean> {
     try {
       const response = await this.fetchWithTimeout(
@@ -397,15 +396,15 @@ export class PredictionApiService {
   ): Promise<StudentWithPrediction> {
     const requestData = {
       age_at_enrollment: formData.age_at_enrollment,
-      gender: formData.gender,
+      gender: formData.gender === "male" ? 1 : 0,
       total_units_approved: formData.total_units_approved,
       average_grade: formData.average_grade,
       total_units_evaluated: formData.total_units_evaluated,
       total_units_enrolled: formData.total_units_enrolled,
       previous_qualification_grade: formData.previous_qualification_grade,
-      tuition_fees_up_to_date: formData.tuition_fees_up_to_date,
-      scholarship_holder: formData.scholarship_holder,
-      debtor: formData.debtor,
+      tuition_fees_up_to_date: formData.tuition_fees_up_to_date ? 0 : 1,
+      scholarship_holder: formData.scholarship_holder ? 0 : 1,
+      debtor: formData.debtor ? 1 : 0,
       uploaded_by: uploadedBy,
     };
 
@@ -550,7 +549,7 @@ export class PredictionResultConverter {
       default:
         if (prediction.probability.dropout >= 0.7) {
           riskLevel = "high";
-        } else if (prediction.probability.dropout >= 0.4) {
+        } else if (prediction.probability.dropout > 0.5) {
           riskLevel = "medium";
         } else {
           riskLevel = "low";
