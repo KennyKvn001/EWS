@@ -508,14 +508,6 @@ Backend testing can be performed using the built-in FastAPI test client or manua
 
 ---
 
-### Project Links
-
-- [Demo Video](https://youtu.be/DRfHBF6c88o)
-- [GitHub Repository](https://github.com/KennyKvn001/EWS)
-- [Application](https://ews-puce.vercel.app)
-
----
-
 ## Contributing
 
 Contributions are welcome! Please follow these steps:
