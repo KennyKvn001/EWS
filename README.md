@@ -35,7 +35,6 @@ EWSS ML is a full-stack application designed to help educational institutions id
 - **Explainable AI**: SHAP-based feature importance and impact analysis
 - **Student Management**: Comprehensive student record tracking
 - **What-If Simulations**: Test intervention scenarios
-- **Batch Processing**: Upload and process multiple students via CSV/Excel
 - **Real-time Dashboard**: Monitor at-risk students and trends
 
 ---
