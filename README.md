@@ -522,7 +522,7 @@ Contributions are welcome! Please follow these steps:
 
 ## License
 
-This project is part of an academic research initiative for early student dropout prediction.
+This project is part of an academic research initiative for early detection of student to dropout prediction.
 
 ---
 
