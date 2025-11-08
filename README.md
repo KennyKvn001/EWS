@@ -17,8 +17,6 @@ A comprehensive student risk prediction platform that uses machine learning to i
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
 - [Testing](#testing)
-- [Configuration](#configuration)
-- [Troubleshooting](#troubleshooting)
 
 ---
 
