@@ -79,25 +79,19 @@ def _normalize_shap_values(shap_values) -> Tuple[np.ndarray, bool]:
         Tuple of (normalized_shap_array, has_two_classes)
     """
     if isinstance(shap_values, list) and len(shap_values) == 2:
-        # Binary classification: SHAP returns list of 2 arrays (one per class)
         shap_dropout = _ensure_2d(np.array(shap_values[0]))
         shap_graduate = _ensure_2d(np.array(shap_values[1]))
-        # Stack along axis=2 to create (samples, features, classes) shape
         shap_array = np.stack([shap_dropout, shap_graduate], axis=2)
         return shap_array, True
     elif isinstance(shap_values, list) and len(shap_values) > 0:
-        # Single class or unexpected format - take first element
         shap_array = np.array(shap_values[0])
         shap_array = _ensure_2d(shap_array)
-        # Reshape to 3D: (samples, features, 1)
         if shap_array.ndim == 2:
             shap_array = shap_array.reshape(shap_array.shape[0], shap_array.shape[1], 1)
         return shap_array, False
     else:
-        # Single array (not a list)
         shap_array = np.array(shap_values)
         shap_array = _ensure_2d(shap_array)
-        # Reshape to 3D: (samples, features, 1)
         if shap_array.ndim == 2:
             shap_array = shap_array.reshape(shap_array.shape[0], shap_array.shape[1], 1)
         return shap_array, False
