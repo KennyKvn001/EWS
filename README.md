@@ -1,7 +1,7 @@
 # EWSS ML - Early Warning and Support System
 
 A comprehensive student risk prediction platform that uses machine learning to identify at risk students, providing actionable insights through explainable AI (XAI).
-![Dashboard Overview](dashboard.png)
+![Dashboard Overview](readme-img/dashboard.png)
 
 [![Demo Video](https://img.shields.io/badge/Demo-YouTube-red)](https://youtu.be/Ace3zPaHwoM)
 [![Application](https://img.shields.io/badge/Application-Live-blue)](https://ews-puce.vercel.app)
@@ -429,6 +429,18 @@ EWS/
 
 ## Testing
 
+### High risk category response
+
+![High Risk Category](readme-img/high.png)
+
+### Medium risk category response
+
+![Medium Risk Category](readme-img/medium.png)
+
+### Low risk category response
+
+![Low Risk Category](readme-img/low.png)
+
 ### Frontend Tests
 
 The frontend includes comprehensive test coverage:
@@ -464,14 +476,16 @@ API service integration tests that verify endpoints are called correctly.
 - ✅ `predictWithExplanation` - Calls `/predict_with_xai` endpoint
 - ✅ `createStudentWithPrediction` - Calls `/students/create-with-prediction` endpoint
 - ✅ `fetchAtRiskStudents` - Calls `/students/at-risk` endpoint with pagination
-- ✅ `healthCheck` - Calls `/health` endpoint
 
 **Test Strategy:**
 
-- Uses mocked fetch to avoid actual network requests
-- Verifies correct endpoint URLs and HTTP methods
-- Validates request body transformations
-- Ensures data is properly formatted
+These integration tests use **mocked fetch** to:
+
+1. Verify endpoints are called with correct URLs
+2. Verify HTTP methods are correct
+3. Verify request bodies and headers are properly formatted
+4. Verify data transformations work correctly
+5. Avoid making actual network requests during testing
 
 **Test Results:**
 
