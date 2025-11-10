@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = 'https://ews-mcr0.onrender.com';
 
 interface ApiState {
   loading: boolean;
