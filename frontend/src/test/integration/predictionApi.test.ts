@@ -108,8 +108,8 @@ describe("PredictionApiService Integration Tests", () => {
         total_units_evaluated: 18,
         total_units_enrolled: 20,
         previous_qualification_grade: 80,
-        tuition_fees_up_to_date: 1,
-        scholarship_holder: 0,
+        tuition_fees_up_to_date: 0,
+        scholarship_holder: 1, 
         debtor: 0,
         gender: 1,
       });
@@ -174,25 +174,23 @@ describe("PredictionApiService Integration Tests", () => {
         })
       );
 
-      // Verify the request body
       const callArgs = fetchMock.mock.calls[0];
       const requestInit = callArgs[1] as RequestInit;
       const requestBody = JSON.parse(requestInit.body as string);
       expect(requestBody).toEqual({
         age_at_enrollment: 22,
-        gender: "female",
+        gender: 0,
         total_units_approved: 12,
         average_grade: 85,
         total_units_evaluated: 15,
         total_units_enrolled: 18,
         previous_qualification_grade: 90,
-        tuition_fees_up_to_date: true,
-        scholarship_holder: true,
-        debtor: false,
+        tuition_fees_up_to_date: 0,
+        scholarship_holder: 0,
+        debtor: 0,
         uploaded_by: "test-user",
       });
 
-      // Verify response
       expect(result).toEqual(mockResponse);
     });
   });
@@ -234,10 +232,8 @@ describe("PredictionApiService Integration Tests", () => {
 
       const result = await apiService.fetchAtRiskStudents(0, 100);
 
-      // Verify fetch was called exactly once
       expect(fetchMock).toHaveBeenCalledTimes(1);
 
-      // Verify the endpoint URL with query parameters
       expect(fetchMock).toHaveBeenCalledWith(
         "https://ews-mcr0.onrender.com/students/at-risk?skip=0&limit=100",
         expect.objectContaining({
@@ -245,7 +241,6 @@ describe("PredictionApiService Integration Tests", () => {
         })
       );
 
-      // Verify response
       expect(result).toEqual(mockResponse);
     });
 
@@ -265,7 +260,6 @@ describe("PredictionApiService Integration Tests", () => {
 
       await apiService.fetchAtRiskStudents(10, 50);
 
-      // Verify fetch was called with correct parameters
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock).toHaveBeenCalledWith(
         "https://ews-mcr0.onrender.com/students/at-risk?skip=10&limit=50",

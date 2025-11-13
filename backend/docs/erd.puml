@@ -1,0 +1,54 @@
+@startuml ERD
+!define PK_COLOR #FFAAAA
+!define FK_COLOR #AAAAFF
+
+entity Student {
+  * id : UUID <<PK>>
+  --
+  * age_at_enrollment : INTEGER
+  * gender : VARCHAR(10)
+  * total_units_approved : FLOAT
+  * average_grade : FLOAT
+  * total_units_evaluated : FLOAT
+  * total_units_enrolled : FLOAT
+  * previous_qualification_grade : FLOAT
+  * tuition_fees_up_to_date : BOOLEAN
+  * scholarship_holder : BOOLEAN
+  * debtor : BOOLEAN
+  * uploaded_by : VARCHAR(255)
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  risk_score : FLOAT
+  risk_category : VARCHAR(50)
+  last_prediction_date : TIMESTAMP
+}
+
+entity PredictionLog {
+  * id : UUID <<PK>>
+  --
+  * student_id : UUID <<FK>>
+  * risk_score : FLOAT
+  * risk_category : VARCHAR(50)
+  confidence_score : FLOAT
+  model_version : VARCHAR(50)
+  model_features : TEXT
+  * created_at : TIMESTAMP
+  created_by : VARCHAR(255)
+}
+
+entity BatchUpload {
+  * id : UUID <<PK>>
+  --
+  filename : VARCHAR(255)
+  * total_records : INTEGER
+  * successful_records : INTEGER
+  * failed_records : INTEGER
+  * status : VARCHAR(50)
+  error_log : TEXT
+  * uploaded_by : VARCHAR(255)
+  * created_at : TIMESTAMP
+  completed_at : TIMESTAMP
+}
+
+Student ||--o{ PredictionLog
+@enduml

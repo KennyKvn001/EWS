@@ -1,0 +1,47 @@
+erDiagram
+    STUDENTS {
+        uuid id PK
+        integer age_at_enrollment
+        string gender
+        float total_units_approved
+        float average_grade
+        float total_units_evaluated
+        float total_units_enrolled
+        float previous_qualification_grade
+        boolean tuition_fees_up_to_date
+        boolean scholarship_holder
+        boolean debtor
+        string uploaded_by
+        timestamp created_at
+        timestamp updated_at
+        float risk_score
+        string risk_category
+        timestamp last_prediction_date
+    }
+    
+    PREDICTION_LOGS {
+        uuid id PK
+        uuid student_id FK
+        float risk_score
+        string risk_category
+        float confidence_score
+        string model_version
+        text model_features
+        timestamp created_at
+        string created_by
+    }
+    
+    BATCH_UPLOADS {
+        uuid id PK
+        string filename
+        integer total_records
+        integer successful_records
+        integer failed_records
+        string status
+        text error_log
+        string uploaded_by
+        timestamp created_at
+        timestamp completed_at
+    }
+    
+    STUDENTS ||--o{ PREDICTION_LOGS : "has many"

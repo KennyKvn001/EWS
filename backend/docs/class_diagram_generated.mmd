@@ -1,0 +1,102 @@
+classDiagram
+    class Student {
+        +UUID id
+        +int age_at_enrollment
+        +str gender
+        +float total_units_approved
+        +float average_grade
+        +float total_units_evaluated
+        +float total_units_enrolled
+        +float previous_qualification_grade
+        +bool tuition_fees_up_to_date
+        +bool scholarship_holder
+        +bool debtor
+        +str uploaded_by
+        +datetime created_at
+        +datetime updated_at
+        +float risk_score
+        +str risk_category
+        +datetime last_prediction_date
+        +to_dict() dict
+    }
+    
+    class PredictionLog {
+        +UUID id
+        +UUID student_id
+        +float risk_score
+        +str risk_category
+        +float confidence_score
+        +str model_version
+        +str model_features
+        +datetime created_at
+        +str created_by
+    }
+    
+    class BatchUpload {
+        +UUID id
+        +str filename
+        +int total_records
+        +int successful_records
+        +int failed_records
+        +str status
+        +str error_log
+        +str uploaded_by
+        +datetime created_at
+        +datetime completed_at
+    }
+    
+    class PredictionInput {
+        <<Pydantic>>
+        +float total_units_approved
+        +float average_grade
+        +int age_at_enrollment
+        +float total_units_evaluated
+        +float total_units_enrolled
+        +float previous_qualification_grade
+        +Union[bool,int,str] tuition_fees_up_to_date
+        +Union[bool,int,str] scholarship_holder
+        +Union[bool,int,str] debtor
+        +Union[str,int] gender
+        +validate_boolean_fields()
+        +validate_gender()
+    }
+    
+    class StudentCreate {
+        <<Pydantic>>
+        +float total_units_approved
+        +float average_grade
+        +int age_at_enrollment
+        +float total_units_evaluated
+        +float total_units_enrolled
+        +float previous_qualification_grade
+        +Union[bool,int,str] tuition_fees_up_to_date
+        +Union[bool,int,str] scholarship_holder
+        +Union[bool,int,str] debtor
+        +Union[str,int] gender
+        +str uploaded_by
+        +validate_boolean_fields()
+        +validate_gender()
+    }
+    
+    class PredictionService {
+        -object _model
+        +predict(user_input: dict) dict
+        -_get_model() object
+    }
+    
+    class FastAPIApp {
+        +get_students()
+        +get_at_risk_students()
+        +predict_student()
+        +predict_with_xai()
+        +create_student_with_prediction()
+        +file_upload()
+        +health_check()
+    }
+    
+    Student "1" --> "*" PredictionLog : has many
+    FastAPIApp --> PredictionService : uses
+    FastAPIApp --> Student : manages
+    FastAPIApp --> PredictionLog : manages
+    PredictionInput <|.. PredictionService : input
+    StudentCreate <|.. Student : creates
