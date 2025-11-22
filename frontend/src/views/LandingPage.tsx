@@ -2,9 +2,7 @@ import React from 'react';
 import { 
   GraduationCap, 
   BarChart2, 
-  Brain, 
-  Shield, 
-  TrendingUp,
+  Brain,
   Activity,
   Calculator,
   Users
