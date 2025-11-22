@@ -1,24 +1,11 @@
 import { SignUp } from '@clerk/clerk-react'
-import { GraduationCap } from 'lucide-react'
+import LandingPage from './LandingPage'
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#d4d4d4]/30 via-gray-50 to-[#d4d4d4]/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
+    <LandingPage>
       <div className="w-full max-w-md">
-        {/* Logo and Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#1e40af] shadow-lg mb-4">
-            <GraduationCap className="size-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            EWS
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Early Warning System
-          </p>
-        </div>
-
-        {/* Clerk Sign Up Component */}
+        {/* Clerk Sign Up Component - Preserving original internal UI */}
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 p-6">
           <SignUp
             appearance={{
@@ -56,7 +43,6 @@ export default function SignUpPage() {
           />
         </div>
       </div>
-    </div>
+    </LandingPage>
   )
 }
-
