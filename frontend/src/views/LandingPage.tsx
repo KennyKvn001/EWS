@@ -8,6 +8,7 @@ import {
   Users
 } from 'lucide-react';
 import { ModeToggle } from '@/components/myui/ThemeToggle';
+import { Link } from 'react-router';
 
 interface LandingPageProps {
   children: React.ReactNode;
@@ -103,10 +104,13 @@ export default function LandingPage({ children }: LandingPageProps) {
         </div>
 
         {/* Footer Text */}
-        <div className="relative z-10">
-          <p className="text-xs text-blue-200/80">
+        <div className="relative z-10 flex items-center gap-4 text-xs text-blue-200/80">
+          <p>
              © {new Date().getFullYear()} EWS ProjectML. All rights reserved.
           </p>
+          <Link to="/privacy-policy" className="hover:text-white hover:underline transition-colors">
+            Privacy Policy & Terms
+          </Link>
         </div>
       </div>
 

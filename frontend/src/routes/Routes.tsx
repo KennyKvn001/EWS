@@ -6,6 +6,7 @@ import Prediction from "@/views/Prediction";
 import HomeOverview from "@/views/HomeOverview";
 import Login from "@/views/Login";
 import SignUpPage from "@/views/SignUp";
+import PrivacyPolicy from "@/views/PrivacyPolicy";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -46,6 +47,10 @@ const routes = createBrowserRouter([
         <SignUpPage />
       </PublicRoute>
     ),
+  },
+  {
+    path: "/privacy-policy",
+    element: <PrivacyPolicy />,
   },
   {
     path: "/",
