@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
-import { downloadMovie } from './lib/download'
+import { downloadMovie } from './offline/download'
 import {
   getAllMovieSummaries,
   getMovieById,
   removeMovie,
   saveMovie,
-} from './lib/storage'
-import type { DownloadProgress } from './lib/download'
-import type { StoredMovieSummary } from './lib/storage'
+} from './offline/storage'
+import type { DownloadProgress } from './offline/download'
+import type { StoredMovieSummary } from './offline/storage'
 import type { FormEvent } from 'react'
 
 interface ExtensionPayload {

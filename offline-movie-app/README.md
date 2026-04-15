@@ -55,8 +55,8 @@ npm run lint
 
 ## Architecture
 
-- `src/lib/storage.ts`: IndexedDB layer for movie blobs and metadata
-- `src/lib/download.ts`: streaming downloader with progress updates
+- `src/offline/storage.ts`: IndexedDB layer for movie blobs and metadata
+- `src/offline/download.ts`: streaming downloader with progress updates
 - `src/App.tsx`: player, downloader, and offline library UI
 - `public/sw.js`: service worker for app-shell caching
 - `chrome-extension/*`: popup and background scripts for URL capture and handoff
