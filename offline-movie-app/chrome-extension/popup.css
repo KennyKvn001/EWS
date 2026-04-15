@@ -1,0 +1,102 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 340px;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+main {
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+h2 {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+button {
+  border: 1px solid #1d4ed8;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0.48rem 0.6rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#videoList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+#videoList li {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.4rem;
+}
+
+#videoList label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-weight: 500;
+}
+
+#videoList span {
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+#statusMessage {
+  margin: 0;
+  min-height: 1em;
+  font-size: 0.78rem;
+  color: #334155;
+}

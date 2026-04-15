@@ -1,0 +1,148 @@
+.app-shell {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header p {
+  margin-top: 0.4rem;
+  color: #3f3f46;
+}
+
+.header .legal-note {
+  margin-top: 0.8rem;
+  font-size: 0.92rem;
+  color: #7c2d12;
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #e4e4e7;
+  box-shadow: 0 6px 20px rgb(15 23 42 / 0.06);
+}
+
+.stream-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+label {
+  display: grid;
+  gap: 0.4rem;
+  color: #27272a;
+}
+
+input {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+}
+
+button {
+  border: 1px solid #4338ca;
+  background: #4338ca;
+  color: #ffffff;
+  padding: 0.58rem 0.85rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.danger {
+  border-color: #b91c1c;
+  background: #b91c1c;
+}
+
+.player-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.player {
+  width: 100%;
+  max-height: 420px;
+  border-radius: 10px;
+  background: #0f172a;
+}
+
+.muted {
+  color: #52525b;
+}
+
+.progress {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+progress {
+  width: 100%;
+}
+
+.status {
+  margin-top: 0.8rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+}
+
+.status.success {
+  background: #ecfdf5;
+  color: #14532d;
+  border: 1px solid #bbf7d0;
+}
+
+.status.error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.library {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.library li {
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.movie-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.movie-meta {
+  margin: 0.2rem 0 0;
+  color: #52525b;
+  font-size: 0.9rem;
+}
+
+.movie-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

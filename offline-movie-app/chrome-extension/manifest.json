@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Offline Movie Vault Helper",
+  "description": "Capture playable video URLs and open them in Offline Movie Vault.",
+  "version": "1.0.0",
+  "permissions": ["activeTab", "scripting", "storage", "downloads", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Offline Movie Vault",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

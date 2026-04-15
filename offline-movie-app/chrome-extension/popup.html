@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Movie Vault Helper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Offline Movie Vault</h1>
+      <p class="note">
+        Works with direct, non-DRM video URLs that permit downloading.
+      </p>
+
+      <label for="appUrlInput">Web app URL</label>
+      <input id="appUrlInput" type="url" placeholder="http://localhost:5173" />
+
+      <button id="saveAppUrlButton" type="button">Save app URL</button>
+      <button id="scanButton" type="button">Scan current tab videos</button>
+
+      <section>
+        <h2>Detected videos</h2>
+        <p id="emptyState">Nothing detected yet.</p>
+        <ul id="videoList"></ul>
+      </section>
+
+      <div class="actions">
+        <button id="openInVaultButton" type="button" disabled>Open in web app</button>
+        <button id="directDownloadButton" type="button" disabled>Direct download</button>
+      </div>
+
+      <p id="statusMessage"></p>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
